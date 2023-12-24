@@ -6,7 +6,7 @@
 #    By: pharbst <pharbst@student.42heilbronn.de>   +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2023/04/17 12:55:54 by pharbst           #+#    #+#              #
-#    Updated: 2023/12/24 16:33:03 by pharbst          ###   ########.fr        #
+#    Updated: 2023/12/24 16:42:01 by pharbst          ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -40,13 +40,13 @@ VPATH := src include
 
 all:
 	@$(MAKE) -s proname_header
-	@-include $(OBJS:.o=.d)
 	@$(MAKE) -s std_all
 
 std_all:
 	@printf "%s$(RESET)\n" "$(FPurple)Compiling $(PRONAME)"
+	@-include $(OBJS:.o=.d)
 	@$(MAKE) -s $(PRONAME)
-	@printf "$(SETCURUP)$(CLEARLINE)\r$(FPurple)%-21s$(FGreen)$(TICKBOX)$(RESET)\n" "Compiling $(PRONAME)"
+	@printf "$(SETCURUP)$(CLEARLINE)$(SETCURUP)$(CLEARLINE)\r$(FPurple)%-21s$(FGreen)$(TICKBOX)$(RESET)\n" "Compiling $(PRONAME)"
 
 $(PRONAME): $(OBJS)
 	$(CC) $(CFLAGS) $(OBJS) -o $(PRONAME)
