@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   socketManager.cpp                                  :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: pharbst <phabst@student.42eilbronn.de>     +#+  +:+       +#+        */
+/*   By: pharbst <pharbst@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/25 16:49:04 by pharbst           #+#    #+#             */
-/*   Updated: 2023/12/25 19:14:25 by pharbst          ###   ########.fr       */
+/*   Updated: 2023/12/25 20:50:35 by pharbst          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,28 +27,33 @@ void	socketManager::createSocket(uint32_t port, uint8_t ipVersion, uint8_t proto
 		std::cout << "Port already in use" << std::endl;
 		return ;
 	}
-	int	sucsess = 0;
+	int	success = 0;
 	t_socket sock;
 	std::memset(&sock, 0, sizeof(sock));
 	if (ipVersion / IPV6 == 1) {
+		std::cout << "creating ipv6 socket" << std::endl;
 		ipVersion -= IPV6;
 		if (!addSocket(IPV6, port, sock))
-			sucsess++;
+			success++;
 	}
 	if (ipVersion / IPV4 == 1) {
+		std::cout << "creating ipv4 socket" << std::endl;
 		ipVersion -= IPV4;
 		if (!addSocket(IPV4, port, sock))
-			sucsess++;
+			success++;
 	}
 	if (ipVersion / LOCALHOST == 1) {
+		std::cout << "creating localhost socket" << std::endl;
 		ipVersion -= LOCALHOST;
 		if (!addSocket(LOCALHOST, port, sock))
-			sucsess++;
+			success++;
 	}
-	if (sucsess == 0) {
+	if (success == 0) {
 		std::cout << "no socket created for port: " << port << std::endl;
 		return ;
 	}
+	std::cout << port << "    " << success << " sockets created" << std::endl;
+	std::cout << std::pair<int, t_socket>(port, sock).first << std::endl;
 	_sockets.insert(std::pair<int, t_socket>(port, sock));
 }
 
@@ -110,6 +115,7 @@ int	socketManager::addSocket(uint8_t ipVersion, uint32_t port, t_socket &sock) {
 }
 
 int	socketManager::bindSocket(int socket, struct sockaddr* addr) {
+	std::cout << "Binding socket" << std::endl;
 	if (bind(socket, addr, sizeof(*addr)) < 0) {
 		std::cout << "Failed to bind socket" << std::endl;
 		return -1;
@@ -117,7 +123,7 @@ int	socketManager::bindSocket(int socket, struct sockaddr* addr) {
 	return 0;
 }
 
-const std::map<int, t_socket>::iterator socketManager::getSockets(uint8_t port) {
+const std::map<int, t_socket>::iterator socketManager::getSockets(int port) {
 	std::map<int, t_socket>::iterator it = _sockets.find(port);
 	return it;
 }
@@ -128,36 +134,36 @@ void	socketManager::startListening(uint32_t port) {
 		std::cout << "No socket found for port: " << port << std::endl;
 		return ;
 	}
-	int	sucsess = 0;
+	unsigned int	success = 0;
 	if (it->second.local > 0) {
 		if (listen(it->second.local, 10) == -1)
 			std::cout << "Listening for localhost socket failed on port: " << port << std::endl;
 		else
-			sucsess++;
+			success++;
 	}
 	if (it->second.ipv4 > 0) {
 		if (listen(it->second.ipv4, 10) == -1)
 			std::cout << "Listening for ipv4 socket failed on port: " << port << std::endl;
-		sucsess += 2;
+		success += 2;
 	}
 	if (it->second.ipv6 > 0) {
 		if (listen(it->second.ipv6, 10) == -1)
 			std::cout << "Listening for ipv6 socket failed on port: " << port << std::endl;
-		sucsess += 4;
+		success += 4;
 	}
-	if (sucsess == 0)
+	if (success == 0)
 		std::cout << "No socket listening for port: " << port << std::endl;
 	else {
 		std::cout << "summary: " << std::endl;
-		if (sucsess >> 2 % 2) {
+		if (success >> 2 % 2) {
 			std::cout << "ipv6 socket is listening on port: " << port << std::endl;
-			sucsess -= 4;
+			success -= 4;
 		}
-		if (sucsess >> 1 % 2) {
+		if (success >> 1 % 2) {
 			std::cout << "ipv4 socket is listening on port: " << port << std::endl;
-			sucsess -= 2;
+			success -= 2;
 		}
-		if (sucsess % 2)
+		if (success % 2)
 			std::cout << "localhost socket is listening on port: " << port << std::endl;
 	}
 }

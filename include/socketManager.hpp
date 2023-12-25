@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   socketManager.hpp                                  :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: pharbst <phabst@student.42eilbronn.de>     +#+  +:+       +#+        */
+/*   By: pharbst <pharbst@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/24 18:31:42 by pharbst           #+#    #+#             */
-/*   Updated: 2023/12/25 19:14:04 by pharbst          ###   ########.fr       */
+/*   Updated: 2023/12/25 20:48:25 by pharbst          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -52,7 +52,7 @@ class socketManager {
 		 */
 		static void	createSocket(uint32_t port, uint8_t ipVersion, uint8_t protocol);
 		static void	startListening(uint32_t port);
-		static const std::map<int, t_socket>::iterator getSockets(uint8_t port);
+		static const std::map<int, t_socket>::iterator getSockets(int port);
 
 	private:
 		// private methods
