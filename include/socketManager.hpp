@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   socketManager.hpp                                  :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: pharbst <pharbst@student.42heilbronn.de>   +#+  +:+       +#+        */
+/*   By: pharbst <phabst@student.42eilbronn.de>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/24 18:31:42 by pharbst           #+#    #+#             */
-/*   Updated: 2023/12/25 00:31:39 by pharbst          ###   ########.fr       */
+/*   Updated: 2023/12/25 19:14:04 by pharbst          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,20 +15,25 @@
 
 # include <iostream>
 # include <sys/socket.h>
+# include <netinet/in.h>
 # include <map>
+# include <cstring>
+# include <unistd.h>
 
-# define TCP SOCK_STREAM
-# define UDP SOCK_DGRAM
-# define LOCALHOST AF_LOCAL
-# define IPV4 AF_INET
-# define IPV6 AF_INET6
-# define IP 0
+# define TCP		SOCK_STREAM
+# define UDP		SOCK_DGRAM
+# define LOCALHOST	AF_LOCAL
+# define IPV4		AF_INET
+# define IPV6		AF_INET6
+# define IP			0
 
 typedef struct s_socket {
 	int				ipv4;
 	int				ipv6;
+	int				local;
 	sockaddr_in		ipv4Addr;
 	sockaddr_in6	ipv6Addr;
+	sockaddr_in		localAddr;
 }	t_socket;
 
 /**
@@ -45,15 +50,18 @@ class socketManager {
 		 * @param ipVersion IPV4, IPV6 or LOCALHOST (to use both ip versions use IPV4 + IPV6)
 		 * @param protocol protocol to use for client sockets (TCP or UDP) the listening socket will always use TCP
 		 */
-		void	createSocket(uint32_t port, uint8_t ipVersion, uint8_t protocol);
+		static void	createSocket(uint32_t port, uint8_t ipVersion, uint8_t protocol);
+		static void	startListening(uint32_t port);
+		static const std::map<int, t_socket>::iterator getSockets(uint8_t port);
 
 	private:
-		// private attributes
-		static int						_socketLocal;
+		// private methods
+		static int	bindSocket(int socket, struct sockaddr* addr);
+		static int addSocket(uint8_t ipVersion, uint32_t port, t_socket &sock);
 		// port, sockets
-		static std::map<int, t_socket>	_sockets;
-		// port, socket
-		static std::map<int, int>		_clientSockets;
+		static std::map<int, t_socket>		_sockets;
+		// origin port, socket
+		static std::map<int, int>			_clientSockets;
 };
 
 #endif
