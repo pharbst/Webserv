@@ -1,3 +1,2 @@
-FROM arch:latest
-
-RUN pacman -Syu --noconfirm valgrind cmake make gcc gdb clang git vim
+ARG VARIANT=bullseye
+FROM mcr.microsoft.com/vscode/devcontainers/base:${VARIANT}
