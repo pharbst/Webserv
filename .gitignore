@@ -3,3 +3,5 @@
 *.d
 *tmp*
 *test*
+a.out
+Webserv
