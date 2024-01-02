@@ -3,10 +3,10 @@
 #                                                         :::      ::::::::    #
 #    Makefile                                           :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
-#    By: pharbst <pharbst@student.42heilbronn.de>   +#+  +:+       +#+         #
+#    By: pharbst <pharbst@student.42heilbronn.de    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2023/04/17 12:55:54 by pharbst           #+#    #+#              #
-#    Updated: 2023/12/24 16:42:01 by pharbst          ###   ########.fr        #
+#    Updated: 2024/01/02 17:14:58 by pharbst          ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -22,12 +22,13 @@ CFLAGS	= -Wall -Wextra -Werror -MMD -MP -g -std=c++98 -Iinclude
 INC_DIR	= ./include/
 
 # add source files with header with the same name
-SOURCE	=	httpServer.cpp
+SOURCE	=	socketManager.cpp
 
 HEADER	= $(addprefix $(INC_DIR), $(SOURCE:.cpp=.hpp))
 
 # add source files without header with the same name and the file with the main function has to be the first in the list
 SRCS	=	webserver.cpp \
+			socketManagerTools.cpp \
 			$(SOURCE)
 
 OBJ_DIR	= ./obj/

@@ -1,17 +1,17 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   socketManager.hpp                                  :+:      :+:    :+:   */
+/*   new_socketManager.hpp                              :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: pharbst <pharbst@student.42.fr>            +#+  +:+       +#+        */
+/*   By: pharbst <pharbst@student.42heilbronn.de    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2023/12/24 18:31:42 by pharbst           #+#    #+#             */
-/*   Updated: 2023/12/30 13:55:48 by pharbst          ###   ########.fr       */
+/*   Created: 2023/12/30 15:05:15 by pharbst           #+#    #+#             */
+/*   Updated: 2024/01/02 16:50:53 by pharbst          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#ifndef SOCKETMANAGER_HPP
-# define SOCKETMANAGER_HPP
+#ifndef NEW_SOCKETMANAGER_HPP
+# define NEW_SOCKETMANAGER_HPP
 
 # include <iostream>
 # include <sys/socket.h>
@@ -36,32 +36,31 @@ typedef struct s_socket {
 	sockaddr_in		localAddr;
 }	t_socket;
 
-/**
- * @brief Class that manages all sockets
- * @param 
- */
 class socketManager {
 	public:
 		// public methods
-		/**
-		* @brief Create a Socket object
-		* 
-		* @param port port to listen on
-		* @param ipVersion IPV4, IPV6 or LOCALHOST (to use both ip versions use IPV4 + IPV6)
-		* @param protocol protocol to use for client sockets (TCP or UDP) the listening socket will always use TCP
-		*/
-		static void	createSocket(uint32_t port, uint32_t ipVersion, uint8_t protocol);
-		static void	startListening(uint32_t port);
-		static const std::map<int, t_socket>::iterator getSockets(int port);
-
+		static void		createSocket(uint32_t port, uint32_t ipVersion, uint32_t protocol);
+		static void		listenSocket(const uint32_t port);
 	private:
 		// private methods
-		static int	bindSocket(int socket, struct sockaddr* addr, socklen_t len);
-		static int addSocket(uint8_t ipVersion, uint32_t port, t_socket &sock);
-		// port, sockets
-		static std::map<int, t_socket>		_sockets;
-		// origin port, socket
-		static std::map<int, int>			_clientSockets;
+			// for createSocket public method
+			static uint16_t		validateCreationParams(const uint32_t port, uint32_t ipVersion);
+			static void			deleteSockets(const uint32_t port);
+			static t_socket		createSockets(const uint16_t interface);
+			static uint32_t		checkSocketCreation(t_socket &sock, const uint16_t interface, const uint32_t port);
+			static void			setReuseAddr(t_socket &sock);
+			static void			bindSockets(t_socket &sock, uint32_t port);
+
+			class reuseAddressException : public std::exception {
+				public:
+					virtual const char* what() const throw() {
+						return "setsockopt(SO_REUSEADDR) failed";
+					}
+			};
+			// for listenSocket public method
+		// private attributes
+		static std::map<uint32_t, t_socket>		_sockets;
+		static std::map<uint32_t, t_socket>		_clientSockets;
 };
 
 #endif
