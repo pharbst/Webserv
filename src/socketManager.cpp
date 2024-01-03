@@ -6,14 +6,14 @@
 /*   By: pharbst <pharbst@student.42heilbronn.de    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/30 15:05:28 by pharbst           #+#    #+#             */
-/*   Updated: 2024/01/02 17:15:57 by pharbst          ###   ########.fr       */
+/*   Updated: 2024/01/03 18:58:41 by pharbst          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "socketManager.hpp"
 
 std::map<uint32_t, t_socket>	socketManager::_sockets;
-std::map<uint32_t, t_socket>	socketManager::_clientSockets;
+// std::map<int, uint32_t>		socketManager::_clientSockets;
 
 void	socketManager::createSocket(uint32_t port, uint32_t ipVersion, uint32_t protocol) {
 	// init
@@ -30,33 +30,36 @@ void	socketManager::createSocket(uint32_t port, uint32_t ipVersion, uint32_t pro
 		socketManager::setReuseAddr(sock);
 	// bind sockets
 	socketManager::bindSockets(sock, port);
+	// listen sockets
+	socketManager::listenSocket(sock, port);
 	// add node to _sockets
 	_sockets.insert(std::pair<uint32_t, t_socket>(port, sock));
 }
 
-void	socketManager::listenSocket(const uint32_t port) {
-	std::map<uint32_t, t_socket>::iterator it = _sockets.find(port);
-	if (it == _sockets.end()) {
-		std::cout << "No socket found for port: " << port << std::endl;
-		return ;
-	}
-	if (it->second.ipv4 > 0) {
-		if (listen(it->second.ipv4, 10) < 0) {
+void	socketManager::listenSocket(t_socket &sock, const uint32_t port) {
+	if (sock.ipv4 > 0) {
+		if (listen(sock.ipv4, 10) < 0) {
 			std::cout << "listen() failed for ipv4 socket" << std::endl;
+			sock.ipv4 = 0;
+			memset((void *)&sock.ipv4Addr, 0, sizeof(sock.ipv4Addr));
 			return ;
 		}
 		std::cout << "ipv4 socket is listening on port: " << port << std::endl;
 	}
-	if (it->second.ipv6 > 0) {
-		if (listen(it->second.ipv6, 10) < 0) {
+	if (sock.ipv6 > 0) {
+		if (listen(sock.ipv6, 10) < 0) {
 			std::cout << "listen() failed for ipv6 socket" << std::endl;
+			sock.ipv6 = 0;
+			memset((void *)&sock.ipv6Addr, 0, sizeof(sock.ipv6Addr));
 			return ;
 		}
-		std::cout << "ipv6 socket is listening on port:" << port << std::endl;
+		std::cout << "ipv6 socket is listening on port: " << port << std::endl;
 	}
-	if (it->second.local > 0) {
-		if (listen(it->second.local, 10) < 0) {
+	if (sock.local > 0) {
+		if (listen(sock.local, 10) < 0) {
 			std::cout << "listen() failed for local socket" << std::endl;
+			sock.local = 0;
+			memset((void *)&sock.localAddr, 0, sizeof(sock.localAddr));
 			return ;
 		}
 		std::cout << "localhost socket is listening on port: " << port << std::endl;

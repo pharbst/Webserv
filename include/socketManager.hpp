@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   new_socketManager.hpp                              :+:      :+:    :+:   */
+/*   socketManager.hpp                                  :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: pharbst <pharbst@student.42heilbronn.de    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/30 15:05:15 by pharbst           #+#    #+#             */
-/*   Updated: 2024/01/02 16:50:53 by pharbst          ###   ########.fr       */
+/*   Updated: 2024/01/03 18:58:15 by pharbst          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,10 +40,11 @@ class socketManager {
 	public:
 		// public methods
 		static void		createSocket(uint32_t port, uint32_t ipVersion, uint32_t protocol);
-		static void		listenSocket(const uint32_t port);
+		// static void		start();
 	private:
 		// private methods
 			// for createSocket public method
+			static void			listenSocket(t_socket &sock, const uint32_t port);
 			static uint16_t		validateCreationParams(const uint32_t port, uint32_t ipVersion);
 			static void			deleteSockets(const uint32_t port);
 			static t_socket		createSockets(const uint16_t interface);
@@ -59,8 +60,10 @@ class socketManager {
 			};
 			// for listenSocket public method
 		// private attributes
+		// port -> sockets
 		static std::map<uint32_t, t_socket>		_sockets;
-		static std::map<uint32_t, t_socket>		_clientSockets;
+		// socket fd -> port
+		// static std::map<int, uint32_t>		_clientSockets;
 };
 
 #endif
