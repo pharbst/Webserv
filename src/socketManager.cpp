@@ -6,7 +6,7 @@
 /*   By: pharbst <pharbst@student.42heilbronn.de    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/30 15:05:28 by pharbst           #+#    #+#             */
-/*   Updated: 2024/01/03 18:58:41 by pharbst          ###   ########.fr       */
+/*   Updated: 2024/01/03 19:23:48 by pharbst          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -44,11 +44,37 @@ void	socketManager::listenSocket(t_socket &sock, const uint32_t port) {
 			memset((void *)&sock.ipv4Addr, 0, sizeof(sock.ipv4Addr));
 			return ;
 		}
+		int flags = fcntl(sock.ipv4, F_GETFL, 0);
+		if (flags < 0) {
+			std::cout << "fcntl() failed for ipv4 socket" << std::endl;
+			sock.ipv4 = 0;
+			memset((void *)&sock.ipv4Addr, 0, sizeof(sock.ipv4Addr));
+			return ;
+		}
+		if (fcntl(sock.ipv4, F_SETFL, flags | O_NONBLOCK) < 0) {
+			std::cout << "ipv4 socket cant be set to nonblocking" << std::endl;
+			sock.ipv4 = 0;
+			memset((void *)&sock.ipv4Addr, 0, sizeof(sock.ipv4Addr));
+			return ;
+		}
 		std::cout << "ipv4 socket is listening on port: " << port << std::endl;
 	}
 	if (sock.ipv6 > 0) {
 		if (listen(sock.ipv6, 10) < 0) {
 			std::cout << "listen() failed for ipv6 socket" << std::endl;
+			sock.ipv6 = 0;
+			memset((void *)&sock.ipv6Addr, 0, sizeof(sock.ipv6Addr));
+			return ;
+		}
+		int flags = fcntl(sock.ipv6, F_GETFL, 0);
+		if (flags < 0) {
+			std::cout << "fcntl() failed for ipv6 socket" << std::endl;
+			sock.ipv6 = 0;
+			memset((void *)&sock.ipv6Addr, 0, sizeof(sock.ipv6Addr));
+			return ;
+		}
+		if (fcntl(sock.ipv6, F_SETFL, flags | O_NONBLOCK) < 0) {
+			std::cout << "ipv6 socket cant be set to nonblocking" << std::endl;
 			sock.ipv6 = 0;
 			memset((void *)&sock.ipv6Addr, 0, sizeof(sock.ipv6Addr));
 			return ;
@@ -62,6 +88,25 @@ void	socketManager::listenSocket(t_socket &sock, const uint32_t port) {
 			memset((void *)&sock.localAddr, 0, sizeof(sock.localAddr));
 			return ;
 		}
+		int flags = fcntl(sock.local, F_GETFL, 0);
+		if (flags < 0) {
+			std::cout << "fcntl() failed for local socket" << std::endl;
+			sock.local = 0;
+			memset((void *)&sock.localAddr, 0, sizeof(sock.localAddr));
+			return ;
+		}
+		if (fcntl(sock.local, F_SETFL, flags | O_NONBLOCK) < 0) {
+			std::cout << "local socket cant be set to nonblocking" << std::endl;
+			sock.local = 0;
+			memset((void *)&sock.localAddr, 0, sizeof(sock.localAddr));
+			return ;
+		}
 		std::cout << "localhost socket is listening on port: " << port << std::endl;
 	}
 }
+
+// void	socketManager::start(void (*networkInterface(int fd, const std::string &appId))) {
+// 	while(true) {
+		
+// 	}
+// }

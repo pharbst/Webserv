@@ -6,7 +6,7 @@
 /*   By: pharbst <pharbst@student.42heilbronn.de    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/30 15:05:15 by pharbst           #+#    #+#             */
-/*   Updated: 2024/01/03 18:58:15 by pharbst          ###   ########.fr       */
+/*   Updated: 2024/01/03 19:23:51 by pharbst          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,6 +19,7 @@
 # include <map>
 # include <cstring>
 # include <unistd.h>
+# include <fcntl.h>
 
 # define TCP		SOCK_STREAM
 # define UDP		SOCK_DGRAM
@@ -40,7 +41,7 @@ class socketManager {
 	public:
 		// public methods
 		static void		createSocket(uint32_t port, uint32_t ipVersion, uint32_t protocol);
-		// static void		start();
+		// static void		start(void (*networkInterface(int fd, const std::string &appId)));
 	private:
 		// private methods
 			// for createSocket public method
