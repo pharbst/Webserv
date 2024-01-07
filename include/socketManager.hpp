@@ -6,7 +6,7 @@
 /*   By: pharbst <pharbst@student.42heilbronn.de    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/30 15:05:15 by pharbst           #+#    #+#             */
-/*   Updated: 2024/01/03 19:23:51 by pharbst          ###   ########.fr       */
+/*   Updated: 2024/01/07 19:13:00 by pharbst          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,10 +16,18 @@
 # include <iostream>
 # include <sys/socket.h>
 # include <netinet/in.h>
+# include <arpa/inet.h>
 # include <map>
 # include <cstring>
 # include <unistd.h>
 # include <fcntl.h>
+
+// #if defined(__LINUX__) || defined(__linux__)
+// 	#include <sys/epoll.h>
+// 	#define SEPOLL(use_epoll) socketEpoll(use_epoll)
+// #else
+// 	#define SEPOLL(use_select) socketSelect(use_select)
+// #endif
 
 # define TCP		SOCK_STREAM
 # define UDP		SOCK_DGRAM
@@ -28,43 +36,20 @@
 # define IPV6		AF_INET6
 # define IP			0
 
-typedef struct s_socket {
-	int				ipv4;
-	int				ipv6;
-	int				local;
-	sockaddr_in		ipv4Addr;
-	sockaddr_in6	ipv6Addr;
-	sockaddr_in		localAddr;
-}	t_socket;
+typedef struct s_data {
+	uint32_t			port;
+	uint32_t			protocol;
+	const std::string	interfaceAddress;
+	bool				server;
+}	t_data;
 
 class socketManager {
 	public:
-		// public methods
-		static void		createSocket(uint32_t port, uint32_t ipVersion, uint32_t protocol);
-		// static void		start(void (*networkInterface(int fd, const std::string &appId)));
+		static void	addSocket(const std::string &interfaceAddress, uint32_t port, uint32_t ipVersion, uint32_t protocol);
+		// void	start(void (*networkInterface(int fd, const std::string &appId)));
 	private:
-		// private methods
-			// for createSocket public method
-			static void			listenSocket(t_socket &sock, const uint32_t port);
-			static uint16_t		validateCreationParams(const uint32_t port, uint32_t ipVersion);
-			static void			deleteSockets(const uint32_t port);
-			static t_socket		createSockets(const uint16_t interface);
-			static uint32_t		checkSocketCreation(t_socket &sock, const uint16_t interface, const uint32_t port);
-			static void			setReuseAddr(t_socket &sock);
-			static void			bindSockets(t_socket &sock, uint32_t port);
-
-			class reuseAddressException : public std::exception {
-				public:
-					virtual const char* what() const throw() {
-						return "setsockopt(SO_REUSEADDR) failed";
-					}
-			};
-			// for listenSocket public method
-		// private attributes
-		// port -> sockets
-		static std::map<uint32_t, t_socket>		_sockets;
-		// socket fd -> port
-		// static std::map<int, uint32_t>		_clientSockets;
+		static bool	validateCreationParams(const std::string &interfaceAddress, uint32_t port, uint32_t protocol);
+		static std::map<int, t_data>		_sockets;
 };
 
 #endif

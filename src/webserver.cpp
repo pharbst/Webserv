@@ -2,7 +2,6 @@
 
 int main()
 {
-	socketManager::createSocket(80, IPV4 + IPV6, TCP);
-	socketManager::listenSocket(80);
+	socketManager::addSocket("127.0.0.1", 8080, IPV4, TCP);
 	return 0;
 }
