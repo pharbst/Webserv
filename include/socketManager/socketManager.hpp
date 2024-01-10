@@ -6,7 +6,7 @@
 /*   By: pharbst <pharbst@student.42heilbronn.de    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/30 15:05:15 by pharbst           #+#    #+#             */
-/*   Updated: 2024/01/10 16:20:03 by pharbst          ###   ########.fr       */
+/*   Updated: 2024/01/10 16:29:12 by pharbst          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -63,7 +63,6 @@ class socketManager {
 #if defined(__LINUX__) || defined(__linux__)
 	#include <sys/epoll.h>
 	#define SEPOLL socketManager::socketEpoll
-	template <typename T>
 	static void							socketEpoll() {
 		const int MAX_EVENTS = 10;
 		std::map<int, uint32_t> eventsMap;
@@ -95,7 +94,7 @@ class socketManager {
 				if (_sockets[fd].server)
 					epollAccept(epollfd, fd);
 				else
-					Interface(fd, _sockets[fd]);
+					sendToWorker(fd, _sockets[fd]);
 			}
 		}
 		close(epollfd);
