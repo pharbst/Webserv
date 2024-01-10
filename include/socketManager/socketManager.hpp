@@ -6,7 +6,7 @@
 /*   By: pharbst <pharbst@student.42heilbronn.de    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/30 15:05:15 by pharbst           #+#    #+#             */
-/*   Updated: 2024/01/10 16:29:12 by pharbst          ###   ########.fr       */
+/*   Updated: 2024/01/11 14:49:18 by pharbst          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,9 +24,14 @@
 # include <limits.h>
 # include <cerrno>
 # include <csignal>
+# include <sstream>
 
-#ifdef __linux__
+#if defined(__LINUX__) || defined(__linux__)
+# include <sys/epoll.h>
+# define SEPOLL socketManager::socketEpoll
 #else
+# include <sys/select.h>
+# define SEPOLL socketManager::socketSelect
 #endif
 
 
@@ -56,13 +61,14 @@ class socketManager {
 		static void							addWorker(int pid, int pipe);
 		static void							start();
 	private:
+		static std::map<int, t_data>		_sockets;
+		static std::map<int, t_worker>		_workers;
+
 		static bool							bindSocket(int fd, const std::string &interfaceAddress, uint32_t port, uint32_t ipVersion);
 		static bool							validateCreationParams(const std::string &interfaceAddress, uint32_t port, uint32_t protocol);
 		static void							sendToWorker(int fd, t_data data);
 		static void							sigHandler(int sig, siginfo_t *siginfo, void *context);
 #if defined(__LINUX__) || defined(__linux__)
-	#include <sys/epoll.h>
-	#define SEPOLL socketManager::socketEpoll
 	static void							socketEpoll() {
 		const int MAX_EVENTS = 10;
 		std::map<int, uint32_t> eventsMap;
@@ -121,8 +127,6 @@ class socketManager {
 		}
 	}
 #else
-	#include <sys/select.h>
-	#define SEPOLL socketManager::socketSelect
 	static void							socketSelect() {
 		fd_set interest;
 		FD_ZERO(&interest);
@@ -168,8 +172,6 @@ class socketManager {
 	}
 #endif
 
-		static std::map<int, t_data>		_sockets;
-		static std::map<int, t_worker>		_workers;
 };
 
 #endif
