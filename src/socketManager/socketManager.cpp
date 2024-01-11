@@ -6,7 +6,7 @@
 /*   By: pharbst <pharbst@student.42heilbronn.de    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/30 15:05:28 by pharbst           #+#    #+#             */
-/*   Updated: 2024/01/11 00:29:25 by pharbst          ###   ########.fr       */
+/*   Updated: 2024/01/11 14:44:06 by pharbst          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,11 +24,12 @@ void	socketManager::start() {
 }
 
 void	socketManager::sendToWorker(int fd, t_data data) {
-	std::string msg = std::to_string(fd) + " " + std::to_string(data.port) + "\n";
+	std::stringstream msg;
+	msg << fd << " " << data.port << "\n";
 	while (true) {
 		for (std::map<int, t_worker>::iterator it = _workers.begin(); it != _workers.end(); it++) {
 			if (it->second.queue == 0) {
-				write(it->second.pipe, msg.c_str(), msg.length());
+				write(it->second.pipe, msg.str().c_str(), msg.str().length());
 				it->second.queue++;
 				return ;
 			}
