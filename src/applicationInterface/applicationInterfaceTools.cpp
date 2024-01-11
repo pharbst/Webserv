@@ -6,7 +6,7 @@
 /*   By: pharbst <pharbst@student.42heilbronn.de    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/10 18:27:08 by pharbst           #+#    #+#             */
-/*   Updated: 2024/01/11 17:25:13 by pharbst          ###   ########.fr       */
+/*   Updated: 2024/01/11 17:45:39 by pharbst          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,14 +21,11 @@ void	applicationInterface::waitOnPipe(int pipe, fd_set readfds) {
 
 t_info	applicationInterface::parsePipe(const std::string &line) {
 	t_info info;
-	std::string::size_type pos = line.find(' ');
-	if (pos == std::string::npos) {
-		std::cout << "Error: Invalid pipe format" << std::endl;
+	std::istringstream iss(line);
+	if (!(iss >> info.socket >> info.port)) {
+		std::cout << "Error: Pipe parse failed" << std::endl;
 		info.socket = -1;
-		return (info);
 	}
-	info.socket = std::stoi(line.substr(0, pos));
-	info.port = std::stoi(line.substr(pos + 1));
 	return (info);
 }
 
@@ -47,8 +44,6 @@ std::string	applicationInterface::readFromSocket(int socket) {
 
 std::string applicationInterface::readLine(int fd) {
 	static char		stash[BUFFER_SIZE];
-	if (fd < 0 || fd > OPEN_MAX)
-		return (NULL);
 	std::string line;
 	{
 		int n = BUFFER_SIZE - 1;

@@ -6,7 +6,7 @@
 /*   By: pharbst <pharbst@student.42heilbronn.de    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/10 17:34:45 by pharbst           #+#    #+#             */
-/*   Updated: 2024/01/11 17:23:34 by pharbst          ###   ########.fr       */
+/*   Updated: 2024/01/11 17:52:45 by pharbst          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,6 +18,9 @@
 # include <sys/select.h>
 # include <unistd.h>
 # include <signal.h>
+# include <cstring>
+# include <sstream>
+# include <stdint.h>
 
 # define BUFFER_SIZE 1024
 
