@@ -6,7 +6,7 @@
 /*   By: pharbst <pharbst@student.42heilbronn.de    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/10 17:34:45 by pharbst           #+#    #+#             */
-/*   Updated: 2024/01/10 19:39:47 by pharbst          ###   ########.fr       */
+/*   Updated: 2024/01/11 16:57:17 by pharbst          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,6 +35,7 @@ class applicationInterface {
 		static void						waitOnPipe(int pipe);
 		static std::string				readLine(int pipe);
 		static bool						parsePipe(const std::sring &line);
+		static std::string				readFromSocket(int socket);
 
 		static std::map<uint32_t, appFunction>	_applications;
 };
