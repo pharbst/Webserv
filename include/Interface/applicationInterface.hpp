@@ -6,7 +6,7 @@
 /*   By: pharbst <pharbst@student.42heilbronn.de    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/10 17:34:45 by pharbst           #+#    #+#             */
-/*   Updated: 2024/01/11 16:57:17 by pharbst          ###   ########.fr       */
+/*   Updated: 2024/01/11 17:23:34 by pharbst          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,7 +15,9 @@
 
 # include <iostream>
 # include <map>
-# include </sys/select.h>
+# include <sys/select.h>
+# include <unistd.h>
+# include <signal.h>
 
 # define BUFFER_SIZE 1024
 
@@ -32,9 +34,9 @@ class applicationInterface {
 		static void						Interface(int pipeRead);
 
 	private:
-		static void						waitOnPipe(int pipe);
+		static void						waitOnPipe(int pipe, fd_set readfds);
 		static std::string				readLine(int pipe);
-		static bool						parsePipe(const std::sring &line);
+		static t_info					parsePipe(const std::string &line);
 		static std::string				readFromSocket(int socket);
 
 		static std::map<uint32_t, appFunction>	_applications;

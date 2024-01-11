@@ -6,7 +6,7 @@
 /*   By: pharbst <pharbst@student.42heilbronn.de    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/10 17:37:00 by pharbst           #+#    #+#             */
-/*   Updated: 2024/01/10 22:37:30 by pharbst          ###   ########.fr       */
+/*   Updated: 2024/01/11 17:24:07 by pharbst          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,21 +15,18 @@
 std::map<uint32_t, appFunction>		applicationInterface::_applications;
 
 void	applicationInterface::Interface(int pipeRead) {
+	fd_set			readfds;
+	FD_ZERO(&readfds);
+	FD_SET(pipeRead, &readfds);
 	while (true) {
-		// wait for pipe to contain a whole line
-		waitOnPipe(pipeRead);
-		while (!(std::string line = readLine(pipeRead)).empty()) {
-			parsePipe(line);
-			if (info.socket == -1)
-				continue ;
-			// call application
-			std::string response = _applications[info.port](readFromSocket(info.socket));
-			// write response to socket
-			write(info.socket, response.c_str(), response.length());
-			// send signal to main process
-			kill(getppid(), SIGUSR1);
-			// start over
-		}
+		waitOnPipe(pipeRead, readfds);
+		std::string line = readLine(pipeRead);
+		t_info info = parsePipe(line);
+		if (info.socket == -1)
+			continue ;
+		std::string response = _applications[info.port](readFromSocket(info.socket));
+		write(info.socket, response.c_str(), response.length());
+		kill(getppid(), SIGUSR1);
 	}
 }
 

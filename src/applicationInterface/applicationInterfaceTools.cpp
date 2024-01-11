@@ -6,16 +6,13 @@
 /*   By: pharbst <pharbst@student.42heilbronn.de    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/10 18:27:08 by pharbst           #+#    #+#             */
-/*   Updated: 2024/01/11 17:01:49 by pharbst          ###   ########.fr       */
+/*   Updated: 2024/01/11 17:25:13 by pharbst          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "applicationInterface.hpp"
 
-void	applicationInterface::waitOnPipe(int pipe) {
-	fd_set			readfds;
-	FD_ZERO(&readfds);
-	FD_SET(pipe, &readfds);
+void	applicationInterface::waitOnPipe(int pipe, fd_set readfds) {
 	if (select(pipe + 1, &readfds, NULL, NULL, NULL) == -1) {
 		std::cout << "Error: Select failed" << std::endl;
 		return ;
@@ -35,7 +32,7 @@ t_info	applicationInterface::parsePipe(const std::string &line) {
 	return (info);
 }
 
-std::string	readFromSocket(int socket) {
+std::string	applicationInterface::readFromSocket(int socket) {
 	std::string	request;
 	char		buffer[BUFFER_SIZE];
 	int			n;
