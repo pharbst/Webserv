@@ -6,7 +6,7 @@
 /*   By: pharbst <pharbst@student.42heilbronn.de    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/30 15:05:15 by pharbst           #+#    #+#             */
-/*   Updated: 2024/01/11 14:49:18 by pharbst          ###   ########.fr       */
+/*   Updated: 2024/01/13 15:45:40 by pharbst          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -50,26 +50,20 @@ typedef struct s_data {
 	bool				server;
 }	t_data;
 
-typedef struct s_worker {
-	int					pipe;
-	int					queue;
-}	t_worker;
+typedef void	(*InterfaceFunction)(int sock, t_data sockData);
 
 class socketManager {
 	public:
 		static void							addSocket(const std::string &interfaceAddress, uint32_t port, uint32_t ipVersion, uint32_t protocol);
-		static void							addWorker(int pid, int pipe);
-		static void							start();
+		static void							start(InterfaceFunction interfaceFunction);
 	private:
 		static std::map<int, t_data>		_sockets;
-		static std::map<int, t_worker>		_workers;
 
 		static bool							bindSocket(int fd, const std::string &interfaceAddress, uint32_t port, uint32_t ipVersion);
 		static bool							validateCreationParams(const std::string &interfaceAddress, uint32_t port, uint32_t protocol);
-		static void							sendToWorker(int fd, t_data data);
 		static void							sigHandler(int sig, siginfo_t *siginfo, void *context);
 #if defined(__LINUX__) || defined(__linux__)
-	static void							socketEpoll() {
+	static void							socketEpoll(InterfaceFunction interfaceFunction) {
 		const int MAX_EVENTS = 10;
 		std::map<int, uint32_t> eventsMap;
 
@@ -100,7 +94,7 @@ class socketManager {
 				if (_sockets[fd].server)
 					epollAccept(epollfd, fd);
 				else
-					sendToWorker(fd, _sockets[fd]);
+					interfaceFunction(fd, _sockets[fd]);
 			}
 		}
 		close(epollfd);
@@ -123,7 +117,7 @@ class socketManager {
 			}
 			t_data data = _sockets[fd];
 			data.server = false;
-			_sockets.insert(std::pair<int, t_data>(newClient, _sockets[fd]));
+			_sockets.insert(std::pair<int, t_data>(newClient, data));
 		}
 	}
 #else
@@ -148,7 +142,7 @@ class socketManager {
 					if (it->second.server)
 						selectAccept(interest, it->first, maxfd);
 					else
-						sendToWorker(it->first, _sockets[it->first]);
+						interfaceFunction(it->first, it->second);
 				}
 			}
 		}
@@ -167,7 +161,7 @@ class socketManager {
 				maxfd = newClient;
 			t_data data = _sockets[fd];
 			data.server = false;
-			_sockets.insert(std::pair<int, t_data>(newClient, _sockets[fd]));
+			_sockets.insert(std::pair<int, t_data>(newClient, data));
 		}
 	}
 #endif
