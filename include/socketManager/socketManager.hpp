@@ -6,7 +6,7 @@
 /*   By: pharbst <pharbst@student.42heilbronn.de    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/30 15:05:15 by pharbst           #+#    #+#             */
-/*   Updated: 2024/01/11 14:49:18 by pharbst          ###   ########.fr       */
+/*   Updated: 2024/01/12 11:06:39 by pharbst          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -123,7 +123,7 @@ class socketManager {
 			}
 			t_data data = _sockets[fd];
 			data.server = false;
-			_sockets.insert(std::pair<int, t_data>(newClient, _sockets[fd]));
+			_sockets.insert(std::pair<int, t_data>(newClient, data));
 		}
 	}
 #else
@@ -167,7 +167,7 @@ class socketManager {
 				maxfd = newClient;
 			t_data data = _sockets[fd];
 			data.server = false;
-			_sockets.insert(std::pair<int, t_data>(newClient, _sockets[fd]));
+			_sockets.insert(std::pair<int, t_data>(newClient, data));
 		}
 	}
 #endif
