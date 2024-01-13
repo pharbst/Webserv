@@ -6,7 +6,7 @@
 /*   By: pharbst <pharbst@student.42heilbronn.de    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/30 15:12:07 by pharbst           #+#    #+#             */
-/*   Updated: 2024/01/13 17:31:34 by pharbst          ###   ########.fr       */
+/*   Updated: 2024/01/13 18:26:34 by pharbst          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -156,12 +156,14 @@ void							socketManager::socketSelect(InterfaceFunction interfaceFunction) {
 			maxfd = pair->first;
 	}
 	while (true) {
+		std::cout << "waiting for events" << std::endl;
 		fd_set readyList = _interest;
 		int numEvents = select(maxfd + 1, &readyList, NULL, NULL, NULL);
 		if (numEvents == -1) {
 			std::cerr << "Error in select" << std::endl;
 			return ;
 		}
+		std::cout << "event detected" << std::endl;
 		for (std::map<int, t_data>::iterator it = _sockets.begin(); it != _sockets.end(); it++) {
 			if (FD_ISSET(it->first, &readyList)) {
 				if (it->second.server)
@@ -187,9 +189,12 @@ void							socketManager::selectAccept(int fd) {
 		t_data data = _sockets[fd];
 		data.server = false;
 		_sockets.insert(std::pair<int, t_data>(newClient, data));
+		std::cout << "New client connected" << std::endl;
+		std::cout << "\tfd: " << newClient << std::endl;
 	}
 }
 void							socketManager::selectRemove(int fd) {
+	std::cout << "Removing fd " << fd << std::endl;
 	FD_CLR(fd, &_interest);
 	if (fd == _maxfd) {
 		for (std::map<int, t_data>::iterator it = _sockets.begin(); it != _sockets.end(); it++) {

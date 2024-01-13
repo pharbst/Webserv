@@ -1,10 +1,10 @@
 #include "socketManager.hpp"
 #include "Interface.hpp"
 
-std::string	test(const std::string &request) {
+std::string	testHttp(const std::string &request) {
 	(void)request;
-	std::cout << "test" << std::endl;
-	return "test";
+	std::cout << "testHttp called" << std::endl;
+	return "HTTP/1.1 200 OK\r\n\r\nHello World!";
 }
 
 int main()
@@ -13,7 +13,7 @@ int main()
 	// parsing here
 	// add application map to interface before forking the workers
 	// applicationInterface::addApplication(80, /*&http::application*/);
-	protocolFunction testFunction = &test;
+	protocolFunction testFunction = &testHttp;
 	Interface::addProtocol("test", testFunction);
 
 	// add sockets
