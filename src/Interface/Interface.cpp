@@ -6,7 +6,7 @@
 /*   By: pharbst <pharbst@student.42heilbronn.de    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/13 12:01:41 by pharbst           #+#    #+#             */
-/*   Updated: 2024/01/13 16:35:56 by pharbst          ###   ########.fr       */
+/*   Updated: 2024/01/13 18:17:45 by pharbst          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,7 +14,8 @@
 
 std::map<std::string, protocolFunction>	Interface::_protocolMap;
 
-void	Interface::interface(int sock) {
+void	Interface::interface(int sock, t_data sockData) {
+	(void)sockData;
 	std::cout << "interface called" << std::endl;
 	std::string		request;
 	std::string		response;

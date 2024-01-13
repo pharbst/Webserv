@@ -6,7 +6,7 @@
 /*   By: pharbst <pharbst@student.42heilbronn.de    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/10 17:34:45 by pharbst           #+#    #+#             */
-/*   Updated: 2024/01/13 13:20:23 by pharbst          ###   ########.fr       */
+/*   Updated: 2024/01/13 18:17:17 by pharbst          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,7 +22,7 @@ typedef std::string (*protocolFunction)(const std::string &request);
 class Interface {
 	public:
 		static void						addProtocol(std::string protocol, protocolFunction function);
-		static void						interface(int sock);
+		static void						interface(int sock, t_data sockData);
 
 	private:
 		static bool						readFromSocket(int sock, std::string &request);

@@ -1,39 +1,26 @@
 #include "socketManager.hpp"
+#include "Interface.hpp"
+
+std::string	test(const std::string &request) {
+	(void)request;
+	std::cout << "test" << std::endl;
+	return "test";
+}
 
 int main()
 {
-	int numWorker = 4;
+	// int numWorker = 4;
 	// parsing here
 	// add application map to interface before forking the workers
-	applicationInterface::addApplication(80, /*&http::application*/);
-
-	// start workers
-	{
-		for (int i = numWorker; i > 0; i--) {
-			int workerPipe[2];
-			if (pipe(workerPipe) == -1) {
-				std::cout << "Error: Pipe failed" << std::endl;
-				return 1;
-			}
-			int pid = fork();
-			if (pid == -1) {
-				std::cout << "Error: Fork failed" << std::endl;
-				return 1;
-			}
-			if (pid == 0) {
-				close(workerPipe[0]);
-				applicationInterface::Interface(workerPipe[1]);
-				return 0;
-			}
-			close(workerPipe[1]);
-			socketManager::addWorker(pid, workerPipe[0]);
-		}
-	}
+	// applicationInterface::addApplication(80, /*&http::application*/);
+	protocolFunction testFunction = &test;
+	Interface::addProtocol("test", testFunction);
 
 	// add sockets
 	{
 		socketManager::addSocket("0.0.0.0", 80, IPV4, TCP);
 	}
-	// socketManager::start();
+	InterfaceFunction interfaceFunction = &Interface::interface;
+	socketManager::start(interfaceFunction);
 	return 0;
 }

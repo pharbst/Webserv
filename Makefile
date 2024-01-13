@@ -6,7 +6,7 @@
 #    By: pharbst <pharbst@student.42heilbronn.de    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2023/04/17 12:55:54 by pharbst           #+#    #+#              #
-#    Updated: 2024/01/11 17:17:12 by pharbst          ###   ########.fr        #
+#    Updated: 2024/01/13 17:19:38 by pharbst          ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -23,7 +23,7 @@ INC_DIR	= -I./include/ -I./include/socketManager/ -I./include/Interface/
 
 # add source files with header with the same name
 SOURCE	=	socketManager.cpp \
-			applicationInterface.cpp
+			Interface.cpp
 
 HEADER	= $(addprefix $(INC_DIR), $(SOURCE:.cpp=.hpp))
 
@@ -33,7 +33,7 @@ HEADER	+=
 # add source files without header with the same name and the file with the main function has to be the first in the list
 SRCS	=	webserver.cpp \
 			socketManagerTools.cpp \
-			applicationInterfaceTools.cpp \
+			InterfaceTools.cpp \
 			$(SOURCE)
 
 OBJ_DIR	= ./obj/
@@ -42,7 +42,7 @@ OBJS = $(addprefix $(OBJ_DIR), $(SRCS:.cpp=.o))
 
 
 # in case of subdirectories in the src folder add them here
-VPATH := src include src/socketManager src/applicationInterface
+VPATH := src include src/socketManager src/Interface
 
 all:
 	@$(MAKE) -s proname_header
