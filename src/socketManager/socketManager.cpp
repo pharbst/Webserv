@@ -6,7 +6,7 @@
 /*   By: pharbst <pharbst@student.42heilbronn.de    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/30 15:05:28 by pharbst           #+#    #+#             */
-/*   Updated: 2024/01/11 14:44:06 by pharbst          ###   ########.fr       */
+/*   Updated: 2024/01/13 10:55:20 by pharbst          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,26 +21,6 @@ void	socketManager::start() {
 	sa.sa_sigaction = &socketManager::sigHandler;
 	sigaction(SIGUSR1, &sa, NULL);
 	SEPOLL();
-}
-
-void	socketManager::sendToWorker(int fd, t_data data) {
-	std::stringstream msg;
-	msg << fd << " " << data.port << "\n";
-	while (true) {
-		for (std::map<int, t_worker>::iterator it = _workers.begin(); it != _workers.end(); it++) {
-			if (it->second.queue == 0) {
-				write(it->second.pipe, msg.str().c_str(), msg.str().length());
-				it->second.queue++;
-				return ;
-			}
-		}
-		usleep(100);
-	}
-}
-
-void	socketManager::addWorker(int pid, int pipe) {
-	t_worker worker = {pipe, 0};
-	_workers.insert(std::pair<int, t_worker>(pid, worker));
 }
 
 void	socketManager::addSocket(const std::string &interfaceAddress, uint32_t port, uint32_t ipVersion, uint32_t protocol) {

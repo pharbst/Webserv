@@ -6,7 +6,7 @@
 /*   By: pharbst <pharbst@student.42heilbronn.de    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/30 15:12:07 by pharbst           #+#    #+#             */
-/*   Updated: 2024/01/10 16:20:14 by pharbst          ###   ########.fr       */
+/*   Updated: 2024/01/13 10:55:28 by pharbst          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -76,12 +76,4 @@ bool	socketManager::bindSocket(int fd, const std::string &interfaceAddress, uint
 			return true;
 		}
 	return false;
-}
-
-void	socketManager::sigHandler(int sig, siginfo_t *siginfo, void *context) {
-	(void)context;
-	if (sig == SIGUSR1) {
-		_workers[siginfo->si_pid].queue--;
-		return ;
-	}
 }
