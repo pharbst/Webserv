@@ -6,7 +6,7 @@
 /*   By: pharbst <pharbst@student.42heilbronn.de    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/30 15:05:15 by pharbst           #+#    #+#             */
-/*   Updated: 2024/01/13 10:55:12 by pharbst          ###   ########.fr       */
+/*   Updated: 2024/01/13 11:02:38 by pharbst          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -50,10 +50,12 @@ typedef struct s_data {
 	bool				server;
 }	t_data;
 
+typedef void	(*InterfaceFunction)(int sock, t_data sockData);
+
 class socketManager {
 	public:
 		static void							addSocket(const std::string &interfaceAddress, uint32_t port, uint32_t ipVersion, uint32_t protocol);
-		static void							start();
+		static void							start(InterfaceFunction interfaceFunction);
 	private:
 		static std::map<int, t_data>		_sockets;
 
@@ -61,7 +63,7 @@ class socketManager {
 		static bool							validateCreationParams(const std::string &interfaceAddress, uint32_t port, uint32_t protocol);
 		static void							sigHandler(int sig, siginfo_t *siginfo, void *context);
 #if defined(__LINUX__) || defined(__linux__)
-	static void							socketEpoll() {
+	static void							socketEpoll(InterfaceFunction interfaceFunction) {
 		const int MAX_EVENTS = 10;
 		std::map<int, uint32_t> eventsMap;
 
@@ -92,7 +94,7 @@ class socketManager {
 				if (_sockets[fd].server)
 					epollAccept(epollfd, fd);
 				else
-					// sendToWorker(fd, _sockets[fd]);
+					interfaceFunction(fd, _sockets[fd]);
 			}
 		}
 		close(epollfd);
@@ -140,7 +142,7 @@ class socketManager {
 					if (it->second.server)
 						selectAccept(interest, it->first, maxfd);
 					else
-						// sendToWorker(it->first, _sockets[it->first]);
+						interfaceFunction(it->first, it->second);
 				}
 			}
 		}

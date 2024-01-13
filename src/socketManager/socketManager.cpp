@@ -6,7 +6,7 @@
 /*   By: pharbst <pharbst@student.42heilbronn.de    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/30 15:05:28 by pharbst           #+#    #+#             */
-/*   Updated: 2024/01/13 10:55:20 by pharbst          ###   ########.fr       */
+/*   Updated: 2024/01/13 11:00:48 by pharbst          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,12 +15,12 @@
 std::map<int, t_data>		socketManager::_sockets;
 std::map<int, t_worker>		socketManager::_workers;
 
-void	socketManager::start() {
+void	socketManager::start(InterfaceFunction interfaceFunction) {
 	struct sigaction sa;
 	memset(&sa, 0, sizeof(sa));
 	sa.sa_sigaction = &socketManager::sigHandler;
 	sigaction(SIGUSR1, &sa, NULL);
-	SEPOLL();
+	SEPOLL(interfaceFunction);
 }
 
 void	socketManager::addSocket(const std::string &interfaceAddress, uint32_t port, uint32_t ipVersion, uint32_t protocol) {
