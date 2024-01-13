@@ -5,7 +5,7 @@ int main()
 	int numWorker = 4;
 	// parsing here
 	// add application map to interface before forking the workers
-	// applicationInterface::addApplication(80, /*&http::application*/);
+	applicationInterface::addApplication(80, /*&http::application*/);
 
 	// start workers
 	{
@@ -22,7 +22,7 @@ int main()
 			}
 			if (pid == 0) {
 				close(workerPipe[0]);
-				// applicationInterface::Interface(workerPipe[1]);
+				applicationInterface::Interface(workerPipe[1]);
 				return 0;
 			}
 			close(workerPipe[1]);

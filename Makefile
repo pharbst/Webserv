@@ -6,7 +6,7 @@
 #    By: pharbst <pharbst@student.42heilbronn.de    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2023/04/17 12:55:54 by pharbst           #+#    #+#              #
-#    Updated: 2024/01/10 16:07:19 by pharbst          ###   ########.fr        #
+#    Updated: 2024/01/11 17:17:12 by pharbst          ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -19,10 +19,11 @@ CC		= c++
 # -MMD and -MP are ussed to create dependecy files
 CFLAGS	= -Wall -Wextra -Werror -MMD -MP -g -std=c++98 $(INC_DIR)
 
-INC_DIR	= -I./include/ -I./include/socketManager/
+INC_DIR	= -I./include/ -I./include/socketManager/ -I./include/Interface/
 
 # add source files with header with the same name
-SOURCE	=	socketManager.cpp
+SOURCE	=	socketManager.cpp \
+			applicationInterface.cpp
 
 HEADER	= $(addprefix $(INC_DIR), $(SOURCE:.cpp=.hpp))
 
@@ -32,6 +33,7 @@ HEADER	+=
 # add source files without header with the same name and the file with the main function has to be the first in the list
 SRCS	=	webserver.cpp \
 			socketManagerTools.cpp \
+			applicationInterfaceTools.cpp \
 			$(SOURCE)
 
 OBJ_DIR	= ./obj/
@@ -40,7 +42,7 @@ OBJS = $(addprefix $(OBJ_DIR), $(SRCS:.cpp=.o))
 
 
 # in case of subdirectories in the src folder add them here
-VPATH := src include src/socketManager
+VPATH := src include src/socketManager src/applicationInterface
 
 all:
 	@$(MAKE) -s proname_header
