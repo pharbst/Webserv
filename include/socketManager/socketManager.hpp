@@ -6,7 +6,7 @@
 /*   By: pharbst <pharbst@student.42heilbronn.de    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/30 15:05:15 by pharbst           #+#    #+#             */
-/*   Updated: 2024/01/13 15:45:40 by pharbst          ###   ########.fr       */
+/*   Updated: 2024/01/13 16:52:35 by pharbst          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,9 +29,11 @@
 #if defined(__LINUX__) || defined(__linux__)
 # include <sys/epoll.h>
 # define SEPOLL socketManager::socketEpoll
+# define SEPOLLREMOVE socketManager::epollRemove
 #else
 # include <sys/select.h>
 # define SEPOLL socketManager::socketSelect
+# define SEPOLLREMOVE socketManager::selectRemove
 #endif
 
 
@@ -55,13 +57,20 @@ typedef void	(*InterfaceFunction)(int sock, t_data sockData);
 class socketManager {
 	public:
 		static void							addSocket(const std::string &interfaceAddress, uint32_t port, uint32_t ipVersion, uint32_t protocol);
+		static void							removeSocket(int fd);
 		static void							start(InterfaceFunction interfaceFunction);
 	private:
 		static std::map<int, t_data>		_sockets;
 
+#if defined(__LINUX__) || defined(__linux__)
+		static int							_epollfd;
+#else
+		static fd_set						_interest;
+		static int							_maxfd;
+#endif
+
 		static bool							bindSocket(int fd, const std::string &interfaceAddress, uint32_t port, uint32_t ipVersion);
 		static bool							validateCreationParams(const std::string &interfaceAddress, uint32_t port, uint32_t protocol);
-		static void							sigHandler(int sig, siginfo_t *siginfo, void *context);
 #if defined(__LINUX__) || defined(__linux__)
 	static void							socketEpoll(InterfaceFunction interfaceFunction) {
 		const int MAX_EVENTS = 10;
@@ -120,6 +129,12 @@ class socketManager {
 			_sockets.insert(std::pair<int, t_data>(newClient, data));
 		}
 	}
+	static void							epollRemove(int fd) {
+		if (epoll_ctl(_epollfd, EPOLL_CTL_DEL, fd, NULL) == -1) {
+			std::cerr << "Error removing file descriptor from epoll" << std::endl;
+			return ;
+		}
+	}
 #else
 	static void							socketSelect() {
 		fd_set interest;
@@ -162,6 +177,15 @@ class socketManager {
 			t_data data = _sockets[fd];
 			data.server = false;
 			_sockets.insert(std::pair<int, t_data>(newClient, data));
+		}
+	}
+	static void							selectRemove(int fd) {
+		FD_CLR(fd, &_interest);
+		if (fd == _maxfd) {
+			for (std::map<int, t_data>::iterator it = _sockets.begin(); it != _sockets.end(); it++) {
+				if (it->first > _maxfd)
+					_maxfd = it->first;
+			}
 		}
 	}
 #endif
