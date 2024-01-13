@@ -6,7 +6,7 @@
 /*   By: pharbst <pharbst@student.42heilbronn.de    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/30 15:05:28 by pharbst           #+#    #+#             */
-/*   Updated: 2024/01/13 11:00:48 by pharbst          ###   ########.fr       */
+/*   Updated: 2024/01/13 17:04:31 by pharbst          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,6 +21,12 @@ void	socketManager::start(InterfaceFunction interfaceFunction) {
 	sa.sa_sigaction = &socketManager::sigHandler;
 	sigaction(SIGUSR1, &sa, NULL);
 	SEPOLL(interfaceFunction);
+}
+
+void	socketManager::removeSocket(int fd) {
+	SEPOLLREMOVE(fd);
+	close(fd);
+	_sockets.erase(fd);
 }
 
 void	socketManager::addSocket(const std::string &interfaceAddress, uint32_t port, uint32_t ipVersion, uint32_t protocol) {

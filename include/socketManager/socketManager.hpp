@@ -6,7 +6,7 @@
 /*   By: pharbst <pharbst@student.42heilbronn.de    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/30 15:05:15 by pharbst           #+#    #+#             */
-/*   Updated: 2024/01/13 11:11:19 by pharbst          ###   ########.fr       */
+/*   Updated: 2024/01/13 17:04:01 by pharbst          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,9 +29,11 @@
 #if defined(__LINUX__) || defined(__linux__)
 # include <sys/epoll.h>
 # define SEPOLL socketManager::socketEpoll
+# define SEPOLLREMOVE socketManager::epollRemove
 #else
 # include <sys/select.h>
 # define SEPOLL socketManager::socketSelect
+# define SEPOLLREMOVE socketManager::selectRemove
 #endif
 
 
@@ -55,20 +57,27 @@ typedef void	(*InterfaceFunction)(int sock, t_data sockData);
 class socketManager {
 	public:
 		static void							addSocket(const std::string &interfaceAddress, uint32_t port, uint32_t ipVersion, uint32_t protocol);
+		static void							removeSocket(int fd);
 		static void							start(InterfaceFunction interfaceFunction);
 	private:
 		static std::map<int, t_data>		_sockets;
 
+#if defined(__LINUX__) || defined(__linux__)
+		static int							_epollfd;
+#else
+		static fd_set						_interest;
+		static int							_maxfd;
+#endif
+
 		static bool							bindSocket(int fd, const std::string &interfaceAddress, uint32_t port, uint32_t ipVersion);
 		static bool							validateCreationParams(const std::string &interfaceAddress, uint32_t port, uint32_t protocol);
-		static void							sigHandler(int sig, siginfo_t *siginfo, void *context);
 #if defined(__LINUX__) || defined(__linux__)
 	static void							socketEpoll(InterfaceFunction interfaceFunction) {
 		const int MAX_EVENTS = 10;
 		std::map<int, uint32_t> eventsMap;
 
-		int epollfd = epoll_create1(0);
-		if (epollfd == -1) {
+		_epollfd = epoll_create1(0);
+		if (_epollfd == -1) {
 			std::cerr << "Error creating epoll file descriptor" << std::endl;
 			return ;
 		}
@@ -77,14 +86,14 @@ class socketManager {
 		for (std::map<int, t_data>::iterator pair = _sockets.begin(); pair != _sockets.end(); pair++) {
 			interest.events = EPOLLIN;
 			interest.data.fd = pair->first;
-			if (epoll_ctl(epollfd, EPOLL_CTL_ADD, pair->first, &interest) == -1) {
+			if (epoll_ctl(_epollfd, EPOLL_CTL_ADD, pair->first, &interest) == -1) {
 				std::cerr << "Error adding file descriptor to epoll" << std::endl;
 				return ;
 			}
 		}
 
 		while (true) {
-			int numEvents = epoll_wait(epollfd, ready, MAX_EVENTS, -1);
+			int numEvents = epoll_wait(_epollfd, ready, MAX_EVENTS, -1);
 			if (numEvents == -1) {
 				std::cerr << "Error in epoll_wait" << std::endl;
 				return ;
@@ -92,12 +101,13 @@ class socketManager {
 			for (int i = 0; i < numEvents; ++i) {
 				int fd = ready[i].data.fd;
 				if (_sockets[fd].server)
-					epollAccept(epollfd, fd);
+					epollAccept(_epollfd, fd);
 				else
 					interfaceFunction(fd, _sockets[fd]);
 			}
 		}
-		close(epollfd);
+		close(_epollfd);
+		_epollfd = -1;
 	}
 	static void							epollAccept(int &epollfd, int fd) {
 		while (true) {
@@ -117,21 +127,26 @@ class socketManager {
 			}
 			t_data data = _sockets[fd];
 			data.server = false;
-			_sockets.insert(std::pair<int, t_data>(newClient, _sockets[fd]));
+			_sockets.insert(std::pair<int, t_data>(newClient, data));
+		}
+	}
+	static void							epollRemove(int fd) {
+		if (epoll_ctl(_epollfd, EPOLL_CTL_DEL, fd, NULL) == -1) {
+			std::cerr << "Error removing file descriptor from epoll" << std::endl;
+			return ;
 		}
 	}
 #else
 	static void							socketSelect() {
-		fd_set interest;
-		FD_ZERO(&interest);
+		FD_ZERO(&_interest);
 		int maxfd = 0;
 		for (std::map<int, t_data>::iterator pair = _sockets.begin(); pair != _sockets.end(); pair++) {
-			FD_SET(pair->first, &interest);
+			FD_SET(pair->first, &_interest);
 			if (pair->first > maxfd)
 				maxfd = pair->first;
 		}
 		while (true) {
-			fd_set readyList = interest;
+			fd_set readyList = _interest;
 			int numEvents = select(maxfd + 1, &readyList, NULL, NULL, NULL);
 			if (numEvents == -1) {
 				std::cerr << "Error in select" << std::endl;
@@ -140,14 +155,14 @@ class socketManager {
 			for (std::map<int, t_data>::iterator it = _sockets.begin(); it != _sockets.end(); it++) {
 				if (FD_ISSET(it->first, &readyList)) {
 					if (it->second.server)
-						selectAccept(interest, it->first, maxfd);
+						selectAccept(it->first);
 					else
 						interfaceFunction(it->first, it->second);
 				}
 			}
 		}
 	}
-	static void							selectAccept(fd_set &interest, int fd, int &maxfd) {
+	static void							selectAccept(int fd) {
 		while (true) {
 			int newClient = accept(fd, NULL, NULL);
 			if (newClient == -1) {
@@ -157,11 +172,20 @@ class socketManager {
 				continue;
 			}
 			FD_SET(newClient, &interest);
-			if (newClient > maxfd)
-				maxfd = newClient;
+			if (newClient > _maxfd)
+				_maxfd = newClient;
 			t_data data = _sockets[fd];
 			data.server = false;
-			_sockets.insert(std::pair<int, t_data>(newClient, _sockets[fd]));
+			_sockets.insert(std::pair<int, t_data>(newClient, data));
+		}
+	}
+	static void							selectRemove(int fd) {
+		FD_CLR(fd, &_interest);
+		if (fd == _maxfd) {
+			for (std::map<int, t_data>::iterator it = _sockets.begin(); it != _sockets.end(); it++) {
+				if (it->first > _maxfd)
+					_maxfd = it->first;
+			}
 		}
 	}
 #endif
