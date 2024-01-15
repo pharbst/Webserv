@@ -6,7 +6,7 @@
 /*   By: pharbst <pharbst@student.42heilbronn.de    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/30 15:12:07 by pharbst           #+#    #+#             */
-/*   Updated: 2024/01/13 18:26:34 by pharbst          ###   ########.fr       */
+/*   Updated: 2024/01/15 14:23:20 by pharbst          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -101,15 +101,17 @@ void							socketManager::socketEpoll(InterfaceFunction interfaceFunction) {
 	}
 
 	while (true) {
+		std::cout << "waiting for events" << std::endl;
 		int numEvents = epoll_wait(_epollfd, ready, MAX_EVENTS, -1);
 		if (numEvents == -1) {
 			std::cerr << "Error in epoll_wait" << std::endl;
 			return ;
 		}
+		std::cout << "event detected" << std::endl;
 		for (int i = 0; i < numEvents; ++i) {
 			int fd = ready[i].data.fd;
 			if (_sockets[fd].server)
-				epollAccept(_epollfd, fd);
+				epollAccept(fd);
 			else
 				interfaceFunction(fd, _sockets[fd]);
 		}
@@ -126,16 +128,31 @@ void							socketManager::epollAccept(int fd) {
 			std::cout << "Error accepting connection" << std::endl;
 			continue;
 		}
+		int flags = fcntl(newClient, F_GETFL, 0);
+		if (flags == -1) {
+			// Handle error
+			return;
+		}
+
+		// Clear the O_NONBLOCK flag
+		flags &= ~O_NONBLOCK;
+
+		if (fcntl(newClient, F_SETFL, flags) == -1) {
+			// Handle error
+			return;
+		}
 		struct epoll_event ev;
 		ev.events = EPOLLIN;
 		ev.data.fd = newClient;
-		if (epoll_ctl(epollfd, EPOLL_CTL_ADD, newClient, &ev) == -1) {
+		if (epoll_ctl(_epollfd, EPOLL_CTL_ADD, newClient, &ev) == -1) {
 			std::cerr << "Error adding file descriptor to epoll" << std::endl;
 			return ;
 		}
 		t_data data = _sockets[fd];
 		data.server = false;
 		_sockets.insert(std::pair<int, t_data>(newClient, data));
+		std::cout << "New client connected" << std::endl;
+		std::cout << "\tfd: " << newClient << std::endl;
 	}
 }
 void							socketManager::epollRemove(int fd) {
@@ -144,9 +161,93 @@ void							socketManager::epollRemove(int fd) {
 		return ;
 	}
 }
+#elif defined(__APPLE__)
+int								socketManager::_kq = -1;
+struct kevent					socketManager::_changes[2];
+struct kevent					socketManager::_events[2];
+
+void							socketManager::socketKqueue(InterfaceFunction interfaceFunction) {
+	_kq = kqueue();
+	if (_kq == -1) {
+		std::cerr << "Error creating kqueue" << std::endl;
+		return ;
+	}
+	for (std::map<int, t_data>::iterator pair = _sockets.begin(); pair != _sockets.end(); pair++) {
+		EV_SET(&_changes[0], pair->first, EVFILT_READ, EV_ADD, 0, 0, NULL);
+		if (kevent(_kq, &_changes[0], 1, NULL, 0, NULL) == -1) {
+			std::cerr << "Error adding file descriptor to kqueue" << std::endl;
+			return ;
+		}
+	}
+	int debug = 0;
+	while (debug++ < 10) {
+		std::cout << "waiting for events" << std::endl;
+		int numEvents = kevent(_kq, NULL, 0, _events, 2, NULL);
+		if (numEvents == -1) {
+			std::cerr << "Error in kevent" << std::endl;
+			return ;
+		}
+		std::cout << "event detected" << std::endl;
+		for (int i = 0; i < numEvents; i++) {
+			int fd = _events[i].ident;
+			if (_sockets[fd].server)
+				kqueueAccept(fd);
+			else
+				interfaceFunction(fd, _sockets[fd]);
+		}
+	}
+	close(_kq);
+	_kq = -1;
+}
+
+void						socketManager::kqueueAccept(int fd) {
+		int newClient;
+	while (true) {
+		newClient = accept(fd, NULL, NULL);
+		std::cout << "debug: fd = " << newClient << std::endl;
+		if (newClient == -1) {
+			if (errno == EAGAIN || errno == EWOULDBLOCK)
+				break ;
+			std::cout << "Error accepting connection" << std::endl;
+			continue;
+		}
+		int flags = fcntl(newClient, F_GETFL, 0);
+		if (flags == -1) {
+			// Handle error
+			return;
+		}
+
+		// Clear the O_NONBLOCK flag
+		flags &= ~O_NONBLOCK;
+
+		if (fcntl(newClient, F_SETFL, flags) == -1) {
+			// Handle error
+			return;
+		}
+		EV_SET(&_changes[0], newClient, EVFILT_READ, EV_ADD, 0, 0, NULL);
+		if (kevent(_kq, &_changes[0], 1, NULL, 0, NULL) == -1) {
+			std::cerr << "Error adding file descriptor to kqueue" << std::endl;
+			return ;
+		}
+		t_data data = _sockets[fd];
+		data.server = false;
+		_sockets.insert(std::pair<int, t_data>(newClient, data));
+		std::cout << "New client connected" << std::endl;
+		std::cout << "\tfd: " << newClient << std::endl;
+	}
+}
+
+void						socketManager::kqueueRemove(int fd) {
+	EV_SET(&_changes[0], fd, EVFILT_READ, EV_DELETE, 0, 0, NULL);
+	if (kevent(_kq, &_changes[0], 1, NULL, 0, NULL) == -1) {
+		std::cerr << "Error removing file descriptor from kqueue" << std::endl;
+		return ;
+	}
+}
 #else
 fd_set							socketManager::_interest;
 int								socketManager::_maxfd = -1;
+
 void							socketManager::socketSelect(InterfaceFunction interfaceFunction) {
 	FD_ZERO(&_interest);
 	int maxfd = 0;
@@ -182,6 +283,19 @@ void							socketManager::selectAccept(int fd) {
 				break ;
 			std::cout << "Error accepting connection" << std::endl;
 			continue;
+		}
+		int flags = fcntl(newClient, F_GETFL, 0);
+		if (flags == -1) {
+			// Handle error
+			return;
+		}
+
+		// Clear the O_NONBLOCK flag
+		flags &= ~O_NONBLOCK;
+
+		if (fcntl(newClient, F_SETFL, flags) == -1) {
+			// Handle error
+			return;
 		}
 		FD_SET(newClient, &_interest);
 		if (newClient > _maxfd)

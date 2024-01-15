@@ -6,7 +6,7 @@
 /*   By: pharbst <pharbst@student.42heilbronn.de    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/30 15:05:15 by pharbst           #+#    #+#             */
-/*   Updated: 2024/01/13 18:12:28 by pharbst          ###   ########.fr       */
+/*   Updated: 2024/01/14 17:36:30 by pharbst          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,6 +30,10 @@
 # include <sys/epoll.h>
 # define SEPOLL socketManager::socketEpoll
 # define SEPOLLREMOVE socketManager::epollRemove
+#elif defined(__APPLE__)
+# include <sys/event.h>
+# define SEPOLL socketManager::socketKqueue
+# define SEPOLLREMOVE socketManager::kqueueRemove
 #else
 # include <sys/select.h>
 # define SEPOLL socketManager::socketSelect
@@ -64,6 +68,10 @@ class socketManager {
 
 	#if defined(__LINUX__) || defined(__linux__)
 		static int							_epollfd;
+	#elif defined(__APPLE__)
+		static int							_kq;
+		static struct kevent				_changes[2];
+		static struct kevent				_events[2];
 	#else
 		static fd_set						_interest;
 		static int							_maxfd;
@@ -75,6 +83,10 @@ class socketManager {
 		static void							socketEpoll(InterfaceFunction interfaceFunction);
 		static void							epollRemove(int fd);
 		static void							epollAccept(int fd);
+	#elif defined(__APPLE__)
+		static void							socketKqueue(InterfaceFunction interfaceFunction);
+		static void							kqueueRemove(int fd);
+		static void							kqueueAccept(int fd);
 	#else
 		static void							socketSelect(InterfaceFunction interfaceFunction);
 		static void							selectRemove(int fd);

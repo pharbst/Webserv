@@ -6,7 +6,7 @@
 /*   By: pharbst <pharbst@student.42heilbronn.de    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/13 12:01:41 by pharbst           #+#    #+#             */
-/*   Updated: 2024/01/13 18:17:45 by pharbst          ###   ########.fr       */
+/*   Updated: 2024/01/15 15:52:06 by pharbst          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,14 +21,17 @@ void	Interface::interface(int sock, t_data sockData) {
 	std::string		response;
 	if (readFromSocket(sock, request)) {
 		std::cout << "readFromSocket failed" << std::endl;
+		socketManager::removeSocket(sock);
 		return ;	// remove client
 	}
 	if (passRequest(request, response)) {
 		std::cout << "passRequest failed" << std::endl;
+		socketManager::removeSocket(sock);
 		return ;	// remove client
 	}
 	if (writeToSocket(sock, response)) {
 		std::cout << "writeToSocket failed" << std::endl;
+		socketManager::removeSocket(sock);
 		return ;	// remove client
 	}
 }

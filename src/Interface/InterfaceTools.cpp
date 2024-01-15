@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   InterFaceTools.cpp                                 :+:      :+:    :+:   */
+/*   InterfaceTools.cpp                                 :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: pharbst <pharbst@student.42heilbronn.de    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/13 12:02:48 by pharbst           #+#    #+#             */
-/*   Updated: 2024/01/13 16:37:31 by pharbst          ###   ########.fr       */
+/*   Updated: 2024/01/15 16:57:47 by pharbst          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,11 +34,16 @@ bool	Interface::readFromSocket(int sock, std::string &request) {
 bool	Interface::passRequest(std::string &request, std::string &response) {
 	if (request.empty())
 		return (true);
-	std::string proto = request.substr(0, request.find("HTTP/1.1"));
-	if (proto.empty())
-		return (true);
-	response = _protocolMap[proto](request);
-	return (false);
+	for (std::map<std::string, protocolFunction>::iterator it = _protocolMap.begin(); it != _protocolMap.end(); it++) {
+		if (request.find(it->first) != std::string::npos) {
+			std::cout << "protocol found" << std::endl;
+			response = _protocolMap[it->first](request);
+			return (false);
+		}
+	}
+	std::cout << "request: " << request << std::endl;
+	std::cout << "unknown protocol" << std::endl;
+	return (true);
 }
 
 bool	Interface::writeToSocket(int sock, std::string &response) {
