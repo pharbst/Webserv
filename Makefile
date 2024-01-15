@@ -6,13 +6,17 @@
 #    By: pharbst <pharbst@student.42heilbronn.de    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2023/04/17 12:55:54 by pharbst           #+#    #+#              #
-#    Updated: 2024/01/13 17:19:38 by pharbst          ###   ########.fr        #
+#    Updated: 2024/01/15 14:29:08 by pharbst          ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 include color.mk
 
+ifeq ($(UNAME), Darwin)
 PRONAME = Webserv
+else ifeq ($(UNAME), Linux)
+PRONAME = Webserv_linux
+endif
 
 CC		= c++
 
@@ -37,6 +41,11 @@ SRCS	=	webserver.cpp \
 			$(SOURCE)
 
 OBJ_DIR	= ./obj/
+ifeq ($(UNAME), Darwin)
+OBJ_DIR = ./obj/mac/
+else ifeq ($(UNAME), Linux)
+OBJ_DIR = ./obj/linux/
+endif
 
 OBJS = $(addprefix $(OBJ_DIR), $(SRCS:.cpp=.o))
 
