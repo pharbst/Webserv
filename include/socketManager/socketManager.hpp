@@ -6,7 +6,7 @@
 /*   By: pharbst <pharbst@student.42heilbronn.de    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/30 15:05:15 by pharbst           #+#    #+#             */
-/*   Updated: 2024/01/14 17:36:30 by pharbst          ###   ########.fr       */
+/*   Updated: 2024/01/16 17:23:48 by pharbst          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -62,6 +62,7 @@ class socketManager {
 	public:
 		static void							addSocket(const std::string &interfaceAddress, uint32_t port, uint32_t ipVersion, uint32_t protocol);
 		static void							removeSocket(int fd);
+		static void							printMap();
 		static void							start(InterfaceFunction interfaceFunction);
 	private:
 		static std::map<int, t_data>		_sockets;

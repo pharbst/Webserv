@@ -6,11 +6,13 @@
 /*   By: pharbst <pharbst@student.42heilbronn.de    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/30 15:12:07 by pharbst           #+#    #+#             */
-/*   Updated: 2024/01/15 14:23:20 by pharbst          ###   ########.fr       */
+/*   Updated: 2024/01/16 23:40:09 by pharbst          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "socketManager.hpp"
+#include <iostream>
+#include <cstdio>
 
 bool	socketManager::validateCreationParams(const std::string &interfaceAddress, uint32_t port, uint32_t protocol) {
 	// validate port
@@ -76,6 +78,15 @@ bool	socketManager::bindSocket(int fd, const std::string &interfaceAddress, uint
 			return true;
 		}
 	return false;
+}
+
+void	socketManager::printMap() {
+	std::cout << "╔══════Socket Map══════╗" << std::endl;
+	std::cout << "║ fd ║ port ║  server  ║" << std::endl;
+	for (std::map<int, t_data>::iterator it = _sockets.begin(); it != _sockets.end(); it++) {
+		printf("║ %2d ║ %4d ║ %8d ║\n", it->first, it->second.port, it->second.server);
+	}
+	std::cout << "╚══════════════════════╝" << std::endl;
 }
 
 #if defined(__LINUX__) || defined(__linux__)
@@ -179,15 +190,15 @@ void							socketManager::socketKqueue(InterfaceFunction interfaceFunction) {
 			return ;
 		}
 	}
-	int debug = 0;
-	while (debug++ < 10) {
+	while (true) {
 		std::cout << "waiting for events" << std::endl;
+		printMap();
 		int numEvents = kevent(_kq, NULL, 0, _events, 2, NULL);
 		if (numEvents == -1) {
 			std::cerr << "Error in kevent" << std::endl;
 			return ;
 		}
-		std::cout << "event detected" << std::endl;
+		// std::cout << "event detected" << std::endl;
 		for (int i = 0; i < numEvents; i++) {
 			int fd = _events[i].ident;
 			if (_sockets[fd].server)
@@ -201,10 +212,11 @@ void							socketManager::socketKqueue(InterfaceFunction interfaceFunction) {
 }
 
 void						socketManager::kqueueAccept(int fd) {
+	std::cout << "kqueue accept called" << std::endl;
 		int newClient;
 	while (true) {
 		newClient = accept(fd, NULL, NULL);
-		std::cout << "debug: fd = " << newClient << std::endl;
+		// std::cout << "debug: fd = " << newClient << std::endl;
 		if (newClient == -1) {
 			if (errno == EAGAIN || errno == EWOULDBLOCK)
 				break ;
@@ -232,7 +244,7 @@ void						socketManager::kqueueAccept(int fd) {
 		t_data data = _sockets[fd];
 		data.server = false;
 		_sockets.insert(std::pair<int, t_data>(newClient, data));
-		std::cout << "New client connected" << std::endl;
+		std::cout << "New client connected with:" << std::endl;
 		std::cout << "\tfd: " << newClient << std::endl;
 	}
 }

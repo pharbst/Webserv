@@ -1,28 +1,31 @@
 #include "socketManager.hpp"
 #include "Interface.hpp"
 
-std::string	testHttp(const std::string &request) {
-	std::cout << "testHttp called" << std::endl;
-	std::cout << request << std::endl;
-	{
-		std::string httpResponse = "HTTP/1.1 200 OK\r\n";
-		httpResponse += "Content-Type: text/html\r\n";
-		httpResponse += "Content-Length: 159\r\n";
-		httpResponse += "Connection: keep-alive\r\n";
-		httpResponse += "\r\n";
-		httpResponse += "<!DOCTYPE html>\r\n";
-		httpResponse += "<html>\r\n";
-		httpResponse += "<head>\r\n";
-		httpResponse += "    <title>Hello World!</title>\r\n";
-		httpResponse += "</head>\r\n";
-		httpResponse += "<body>\r\n";
-		httpResponse += "    <p>Hey, you just connected through the best socket manager in the world.</p>\r\n";
-		httpResponse += "</body>\r\n";
-		httpResponse += "</html>\r\n";
+std::string testHttp(const std::string &request) {
+    std::cout << "testHttp called" << std::endl;
+    if (request.empty()) {
+        std::cout << "request is empty" << std::endl;
+        return "";
+    } else {
+        std::string httpResponse = "HTTP/1.1 200 OK\r\n";
+        httpResponse += "Content-Type: text/html\r\n";
+        httpResponse += "Content-Length: 210\r\n";
+        httpResponse += "Connection: keep-alive\r\n";
+        httpResponse += "\r\n";
+        httpResponse += "<!DOCTYPE html>\r\n";
+        httpResponse += "<html>\r\n";
+        httpResponse += "<head>\r\n";
+        httpResponse += "    <title>Hello World!</title>\r\n";
+        httpResponse += "</head>\r\n";
+        httpResponse += "<body style=\"background-color: #363636; color: #ffffff;\">\r\n";
+        httpResponse += "    <p>Hey, you just connected through the best socket manager in the world.</p>\r\n";
+        httpResponse += "</body>\r\n";
+        httpResponse += "</html>\r\n";
 
-		return httpResponse;
-	}
+        return httpResponse;
+    }
 }
+
 
 int main()
 {
