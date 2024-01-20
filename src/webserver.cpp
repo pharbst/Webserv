@@ -26,7 +26,12 @@ int main()
 	Interface::addProtocol("HTTP/1.1", testFunction);
 	// add sockets
 	{
-		socketManager::addSocket("0.0.0.0", 80, IPV4, TCP);
+		t_socket socket;
+		socket.port = 80;
+		socket.protocol = TCP;
+		socket.ipVersion = IPV4;
+		socket.interfaceAddress = "0.0.0.0";
+		socketManager::addSocket(socket);
 	}
 	InterfaceFunction interfaceFunction = &Interface::interface;
 	socketManager::start(interfaceFunction);

@@ -6,7 +6,7 @@
 /*   By: pharbst <pharbst@student.42heilbronn.de    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/13 12:02:48 by pharbst           #+#    #+#             */
-/*   Updated: 2024/01/15 16:57:47 by pharbst          ###   ########.fr       */
+/*   Updated: 2024/01/20 21:08:27 by pharbst          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,7 +16,12 @@ bool	Interface::readFromSocket(int sock, std::string &request) {
 	int	n = BUFFER_SIZE;
 	char buffer[BUFFER_SIZE];
 	while (n == BUFFER_SIZE) {
-		n = recv(sock, buffer, BUFFER_SIZE, 0);
+		#if defined(__SSL__)
+		if ()
+		n = 
+		#else
+		n = read(sock, buffer, BUFFER_SIZE);
+		#endif
 		if (n < 0) {
 			std::cout << "recv failed" << std::endl;
 			return (true);
@@ -52,3 +57,31 @@ bool	Interface::writeToSocket(int sock, std::string &response) {
 		return (true);
 	return (false);
 }
+
+#if defined(__SSL__)
+bool	Interface::sslReadFromSocket(int sock, std::string &request, t_data sockData) {
+	int	n = BUFFER_SIZE;
+	char buffer[BUFFER_SIZE];
+	while (n == BUFFER_SIZE) {
+		n = SSL_read(sockData.sslSession, buffer, BUFFER_SIZE);
+		if (n < 0) {
+			std::cout << "recv failed" << std::endl;
+			return (true);
+		}
+		if (n == 0 && request.empty()) {
+			std::cout << "client disconnected" << std::endl;
+			return (true);
+		}
+		request.append(buffer, n);
+	}
+	request.append(buffer, n);
+	return (false);
+}
+
+bool	Interface::sslWriteToSocket(int sock, std::string &response, t_data sockData) {
+	int i = SSL_write(sockData.sslSession, response.c_str(), response.length());
+	if (i < 0 || i == 0)
+		return (true);
+	return (false);
+}
+#endif

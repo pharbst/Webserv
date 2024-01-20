@@ -6,7 +6,7 @@
 /*   By: pharbst <pharbst@student.42heilbronn.de    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/10 17:34:45 by pharbst           #+#    #+#             */
-/*   Updated: 2024/01/20 16:52:31 by pharbst          ###   ########.fr       */
+/*   Updated: 2024/01/20 21:10:11 by pharbst          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,6 +14,7 @@
 # define APPLICATIONINTERFACE_HPP
 
 # include "socketManager.hpp"
+# include <cstdlib>
 
 # define BUFFER_SIZE 1024
 

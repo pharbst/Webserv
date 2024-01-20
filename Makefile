@@ -6,7 +6,7 @@
 #    By: pharbst <pharbst@student.42heilbronn.de    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2023/04/17 12:55:54 by pharbst           #+#    #+#              #
-#    Updated: 2024/01/20 19:13:39 by pharbst          ###   ########.fr        #
+#    Updated: 2024/01/20 19:24:29 by pharbst          ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -23,7 +23,7 @@ CC		= c++
 SSLFLAG :=
 SSLLDFLAG :=
 # -MMD and -MP are ussed to create dependecy files
-CFLAGS	= -Wall -Wextra -Werror -MMD -MP -g -std=c++98 $(INC_DIR)
+CFLAGS	+= -Wall -Wextra -Werror -MMD -MP -g -std=c++98 $(INC_DIR)
 
 INC_DIR	= 	-I./include/ \
 			-I./include/socketManager/ \

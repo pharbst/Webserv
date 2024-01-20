@@ -6,7 +6,7 @@
 /*   By: pharbst <pharbst@student.42heilbronn.de    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/30 15:05:28 by pharbst           #+#    #+#             */
-/*   Updated: 2024/01/20 16:50:10 by pharbst          ###   ########.fr       */
+/*   Updated: 2024/01/20 20:19:33 by pharbst          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,21 +15,24 @@
 std::map<int, t_data>		socketManager::_sockets;
 
 void	socketManager::start(InterfaceFunction interfaceFunction) {
-	SEPOLL(interfaceFunction);
+	#if defined(__SSL__)
+	SSL_library_init();
+	SSL_load_error_strings();
+	#endif
+	SEPOLLQU(interfaceFunction);
 }
 
 void	socketManager::removeSocket(int fd) {
-	SEPOLLREMOVE(fd);
+	SEPOLLQUREMOVE(fd);
 	close(fd);
 	_sockets.erase(fd);
 }
 
-void	socketManager::addSocket(const std::string &interfaceAddress, uint32_t port, uint32_t ipVersion, uint32_t protocol) {
-	(void)protocol;
-	if (validateCreationParams(interfaceAddress, port, protocol))
+void	socketManager::addSocket(const t_socket &newSocket) {
+	if (validateCreationParams(newSocket.interfaceAddress, newSocket.port, newSocket.protocol))
 		return ;
 	// create socket with error check
-	int fd = socket(ipVersion, protocol, 0);
+	int fd = socket(newSocket.ipVersion, newSocket.protocol, 0);
 	if (fd == -1) {
 		std::cout << "Socket creation failed" << std::endl;
 		return ;
@@ -52,7 +55,7 @@ void	socketManager::addSocket(const std::string &interfaceAddress, uint32_t port
 		}
 	}
 	// bind socket with error check
-	if (bindSocket(fd, interfaceAddress, port, ipVersion))
+	if (bindSocket(fd, newSocket.interfaceAddress, newSocket.port, newSocket.ipVersion))
 		return ;
 	// listen on socket with error check
 	{
@@ -61,8 +64,12 @@ void	socketManager::addSocket(const std::string &interfaceAddress, uint32_t port
 			return ;
 		}
 	}
-	// set flags
+	#if defined(__SSL__)
+	// init ssl context
+	sslInit(newSocket, fd);
+	#else
 	// add socket to map
-	t_data data = {port, protocol, interfaceAddress, false, false, true};
+	t_data data = {newSocket.interfaceAddress, newSocket.port, newSocket.protocol, false, false, true};
 	_sockets.insert(std::pair<int, t_data>(fd, data));
+	#endif
 }

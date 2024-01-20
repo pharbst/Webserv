@@ -6,13 +6,13 @@
 /*   By: pharbst <pharbst@student.42heilbronn.de    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/30 15:12:07 by pharbst           #+#    #+#             */
-/*   Updated: 2024/01/20 17:23:39 by pharbst          ###   ########.fr       */
+/*   Updated: 2024/01/20 21:11:29 by pharbst          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "socketManager.hpp"
 #include <iostream>
-#include <cstdio>
+#include <stdio.h>
 
 bool	socketManager::validateCreationParams(const std::string &interfaceAddress, uint32_t port, uint32_t protocol) {
 	// validate port
@@ -91,6 +91,7 @@ void	socketManager::printMap() {
 
 #if defined(__LINUX__) || defined(__linux__)
 int								socketManager::_epollfd = -1;
+
 void							socketManager::socketEpoll(InterfaceFunction interfaceFunction) {
 	const int MAX_EVENTS = 10;
 	std::map<int, uint32_t> eventsMap;
@@ -149,6 +150,19 @@ void							socketManager::epollAccept(int fd) {
 			std::cout << "Error accepting connection" << std::endl;
 			continue;
 		}
+		#if defined(__SSL__)
+		if (_sockets[fd].ssl) {
+			sslAccept(newClient, fd);
+			struct epoll_event ev;
+			ev.events = EPOLLIN | EPOLLOUT;
+			ev.data.fd = newClient;
+			if (epoll_ctl(_epollfd, EPOLL_CTL_ADD, newClient, &ev) == -1) {
+				std::cerr << "Error adding file descriptor to epoll" << std::endl;
+				return ;
+			}
+			continue;
+		}
+		#endif
 		struct epoll_event ev;
 		ev.events = EPOLLIN | EPOLLOUT;
 		ev.data.fd = newClient;
@@ -164,6 +178,12 @@ void							socketManager::epollAccept(int fd) {
 	}
 }
 void							socketManager::epollRemove(int fd) {
+	#if defined(__SSL__)
+	if (_sockets[fd].ssl) {
+		SSL_shutdown(_sockets[fd].sslSession);
+		SSL_free(_sockets[fd].sslSession);
+	}
+	#endif
 	if (epoll_ctl(_epollfd, EPOLL_CTL_DEL, fd, NULL) == -1) {
 		std::cerr << "Error removing file descriptor from epoll" << std::endl;
 		return ;
@@ -239,6 +259,22 @@ void						socketManager::kqueueAccept(int fd) {
 			std::cout << "Error accepting connection" << std::endl;
 			continue;
 		}
+		#if defined(__SSL__)
+		if (_sockets[fd].ssl) {
+			sslAccept(newClient, fd);
+			EV_SET(&_changes[0], newClient, EVFILT_READ, EV_ADD, 0, 0, NULL);
+			if (kevent(_kq, &_changes[0], 1, NULL, 0, NULL) == -1) {
+				std::cerr << "Error adding file descriptor to kqueue" << std::endl;
+				return ;
+			}
+			EV_SET(&_changes[0], newClient, EVFILT_WRITE, EV_ADD, 0, 0, NULL);
+			if (kevent(_kq, &_changes[0], 1, NULL, 0, NULL) == -1) {
+				std::cerr << "Error adding file descriptor to kqueue" << std::endl;
+				return ;
+			}	
+			continue;
+		}
+		#endif
 		EV_SET(&_changes[0], newClient, EVFILT_READ, EV_ADD, 0, 0, NULL);
 		if (kevent(_kq, &_changes[0], 1, NULL, 0, NULL) == -1) {
 			std::cerr << "Error adding file descriptor to kqueue" << std::endl;
@@ -259,6 +295,13 @@ void						socketManager::kqueueAccept(int fd) {
 
 void						socketManager::kqueueRemove(int fd) {
 	EV_SET(&_changes[0], fd, EVFILT_READ, EV_DELETE, 0, 0, NULL);
+	EV_SET(&_changes[1], fd, EVFILT_WRITE, EV_DELETE, 0, 0, NULL);
+	#if defined(__SSL__)
+	if (_sockets[fd].ssl) {
+		SSL_shutdown(_sockets[fd].sslSession);
+		SSL_free(_sockets[fd].sslSession);
+	}
+	#endif
 	if (kevent(_kq, &_changes[0], 1, NULL, 0, NULL) == -1) {
 		std::cerr << "Error removing file descriptor from kqueue" << std::endl;
 		return ;
@@ -313,6 +356,15 @@ void							socketManager::selectAccept(int fd) {
 			std::cout << "Error accepting connection" << std::endl;
 			continue;
 		}
+		#if defined(__SSL__)
+		if (_sockets[fd].ssl) {
+			sslAccept(newClient, fd);
+			FD_SET(newClient, &_interest);
+			if (newClient > _maxfd)
+				_maxfd = newClient;
+			continue;
+		}
+		#endif
 		FD_SET(newClient, &_interest);
 		if (newClient > _maxfd)
 			_maxfd = newClient;
@@ -325,6 +377,12 @@ void							socketManager::selectAccept(int fd) {
 }
 void							socketManager::selectRemove(int fd) {
 	std::cout << "Removing fd " << fd << std::endl;
+	#if defined(__SSL__)
+	if (_sockets[fd].ssl) {
+		SSL_shutdown(_sockets[fd].sslSession);
+		SSL_free(_sockets[fd].sslSession);
+	}
+	#endif
 	FD_CLR(fd, &_interest);
 	if (fd == _maxfd) {
 		for (std::map<int, t_data>::iterator it = _sockets.begin(); it != _sockets.end(); it++) {
@@ -332,5 +390,44 @@ void							socketManager::selectRemove(int fd) {
 				_maxfd = it->first;
 		}
 	}
+}
+#endif
+
+#if defined(__SSL__)
+void	socketManager::sslInit(const t_socket &newSocket, int fd) {
+	if (!newSocket.ssl) {
+		// add socket to map
+		t_data data = {newSocket.interfaceAddress, newSocket.port, newSocket.protocol, NULL, NULL, false, false, false, true};
+		_sockets.insert(std::pair<int, t_data>(fd, data));
+		return ;
+	}
+	t_data data = {newSocket.interfaceAddress, newSocket.port, newSocket.protocol, NULL, NULL, true, false, false, true};
+	const SSL_METHOD* method = SSLv23_server_method();
+	data.ctx = SSL_CTX_new(method);
+	if (!data.ctx) {
+		std::cout << "SSL context creation failed" << std::endl;
+		return ;
+	}
+	if (SSL_CTX_use_certificate_file(data.ctx, newSocket.certFile, SSL_FILETYPE_PEM) <= 0 ||
+		SSL_CTX_use_PrivateKey_file(data.ctx, newSocket.keyFile, SSL_FILETYPE_PEM) <= 0) {
+		std::cout << "SSL context configuration failed" << std::endl;
+		return ;
+	}
+	_sockets.insert(std::pair<int, t_data>(fd, data));
+}
+
+void	socketManager::sslAccept(int newClient, int fd) {
+	SSL* newSession = SSL_new(_sockets[fd].ctx);
+			SSL_set_fd(newSession, newClient);
+			if (SSL_accept(newSession) <= 0) {
+				std::cout << "SSL accept failed" << std::endl;
+				return ;
+			}
+			t_data data = _sockets[fd];
+			data.sslSession = newSession;
+			data.server = false;
+			_sockets.insert(std::pair<int, t_data>(newClient, data));
+			std::cout << "New client connected" << std::endl;
+			std::cout << "\tfd: " << newClient << std::endl;
 }
 #endif
