@@ -3,10 +3,10 @@
 #                                                         :::      ::::::::    #
 #    Makefile                                           :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
-#    By: vlenard <vlenard@student.42.fr>            +#+  +:+       +#+         #
+#    By: pharbst <pharbst@student.42heilbronn.de    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2023/04/17 12:55:54 by pharbst           #+#    #+#              #
-#    Updated: 2024/01/19 12:46:03 by vlenard          ###   ########.fr        #
+#    Updated: 2024/01/20 19:13:39 by pharbst          ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -20,6 +20,8 @@ endif
 
 CC		= c++
 
+SSLFLAG :=
+SSLLDFLAG :=
 # -MMD and -MP are ussed to create dependecy files
 CFLAGS	= -Wall -Wextra -Werror -MMD -MP -g -std=c++98 $(INC_DIR)
 
@@ -68,14 +70,24 @@ all:
 	@$(MAKE) -s proname_header
 	@$(MAKE) -s std_all
 
+ssl:
+	$(MAKE) -s proname_header
+	$(MAKE) -s std_clean
+	$(MAKE) -s std_all SSLFLAG="-D__SSL__ -I/goinfre/$(USER)/.brew/opt/openssl@3/include" SSLLDFLAG="-L/goinfre/$(USER)/.brew/opt/openssl@3/lib -lssl -lcrypto"
+
+
 std_all:
+	@echo $(CFLAGS)
+	@echo $(SSLFLAG)
+	@echo $(SSLLDFLAG)
+	
 	@printf "%s$(RESET)\n" "$(FPurple)Compiling $(PRONAME)"
 	@-include $(OBJS:.o=.d)
 	@$(MAKE) -s $(PRONAME)
 	@printf "$(SETCURUP)$(CLEARLINE)$(SETCURUP)$(CLEARLINE)\r$(FPurple)%-21s$(FGreen)$(TICKBOX)$(RESET)\n" "Compiling $(PRONAME)"
 
 $(PRONAME): $(OBJS)
-	$(CC) $(CFLAGS) $(OBJS) -o $(PRONAME)
+	$(CC) $(CFLAGS) $(SSLFLAG) $(SSLLDFLAG) $(OBJS) -o $(PRONAME)
 
 $(OBJ_DIR)%.o: %.cpp
 ifeq ($(shell test -d $(OBJ_DIR) || echo $$?), 1)
@@ -83,7 +95,7 @@ ifeq ($(shell test -d $(OBJ_DIR) || echo $$?), 1)
 	@mkdir -p $(OBJ_DIR)
 endif
 	@printf "$(CLEARLINE)\r%-28s$(RESET)" "$(Yellow)Compiling $< ..."
-	@$(CC) $(CFLAGS) -c $< -o $@
+	@$(CC) $(CFLAGS) $(SSLFLAG) -c $< -o $@
 
 clean:
 	@$(MAKE) -s proname_header
