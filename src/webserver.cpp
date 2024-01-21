@@ -14,23 +14,23 @@ std::string testHttp(const std::string &request/* , Config & config */) {
     }
 }
 
-std::string handle_ssl_communication(const std::string &request) {
-	(void)request;
-	std::string respond =
-		"HTTP/1.1 200 OK\r\n"
-		"Content-Type: text/html\r\n"
-		"\r\n"
-		"<!DOCTYPE html>\r\n"
-		"<html>\r\n"
-		"<head>\r\n"
-		"<title>Hello, World!</title>\r\n"
-		"</head>\r\n"
-		"<body>\r\n"
-		"<h1>Hello, World!</h1>\r\n"
-		"</body>\r\n"
-		"</html>\r\n";
-	return respond;
-}
+// std::string handle_ssl_communication(const std::string &request) {
+// 	(void)request;
+// 	std::string respond =
+// 		"HTTP/1.1 200 OK\r\n"
+// 		"Content-Type: text/html\r\n"
+// 		"\r\n"
+// 		"<!DOCTYPE html>\r\n"
+// 		"<html>\r\n"
+// 		"<head>\r\n"
+// 		"<title>Hello, World!</title>\r\n"
+// 		"</head>\r\n"
+// 		"<body>\r\n"
+// 		"<h1>Hello, World!</h1>\r\n"
+// 		"</body>\r\n"
+// 		"</html>\r\n";
+// 	return respond;
+// }
 
 int main()
 {
@@ -41,8 +41,8 @@ int main()
 	//Config config;
 	protocolFunction testFunction = &testHttp;
 	Interface::addProtocol(80, testFunction);
-	protocolFunction testFunction2 = &handle_ssl_communication;
-	Interface::addProtocol(443, testFunction2);
+	// protocolFunction testFunction2 = &handle_ssl_communication;
+	Interface::addProtocol(443, testFunction);
 	// add sockets
 	{
 		t_socket socket;

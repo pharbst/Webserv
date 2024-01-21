@@ -6,7 +6,7 @@
 /*   By: pharbst <pharbst@student.42heilbronn.de    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/30 15:12:07 by pharbst           #+#    #+#             */
-/*   Updated: 2024/01/21 16:47:57 by pharbst          ###   ########.fr       */
+/*   Updated: 2024/01/21 18:47:57 by pharbst          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -263,7 +263,9 @@ void						socketManager::kqueueAccept(int fd) {
 		std::cout << "debug: ssl = " << _sockets[fd].ssl << std::endl;
 		if (_sockets[fd].ssl) {
 			std::cout << "ssl accept called" << std::endl;
-			sslAccept(newClient, fd);
+			if (sslAccept(newClient, fd)) {
+				continue;
+			}
 			EV_SET(&_changes[0], newClient, EVFILT_READ, EV_ADD, 0, 0, NULL);
 			if (kevent(_kq, &_changes[0], 1, NULL, 0, NULL) == -1) {
 				std::cerr << "Error adding file descriptor to kqueue" << std::endl;
@@ -418,18 +420,30 @@ void	socketManager::sslInit(const t_socket &newSocket, int fd) {
 	_sockets.insert(std::pair<int, t_data>(fd, data));
 }
 
-void	socketManager::sslAccept(int newClient, int fd) {
+bool	socketManager::sslAccept(int newClient, int fd) {
 	SSL* newSession = SSL_new(_sockets[fd].ctx);
-			SSL_set_fd(newSession, newClient);
-			if (SSL_accept(newSession) <= 0) {
-				std::cout << "SSL accept failed" << std::endl;
-				return ;
-			}
-			t_data data = _sockets[fd];
-			data.sslSession = newSession;
-			data.server = false;
-			_sockets.insert(std::pair<int, t_data>(newClient, data));
-			std::cout << "New client connected" << std::endl;
-			std::cout << "\tfd: " << newClient << std::endl;
+	SSL_set_fd(newSession, newClient);
+	// remove nonblocking flag
+	int flags = fcntl(newClient, F_GETFL, 0);
+	if (flags == -1) {
+		std::cout << "Error getting socket flags" << std::endl;
+		return (true);
+	}
+	if (fcntl(newClient, F_SETFL, flags & ~O_NONBLOCK) == -1) {
+		std::cout << "Error setting socket flags" << std::endl;
+		return (true);
+	}
+	if (SSL_accept(newSession) <= 0) {
+		perror("Error accepting SSL connection");
+		ERR_print_errors_fp(stderr);
+		return (true);
+	}
+	t_data data = _sockets[fd];
+	data.sslSession = newSession;
+	data.server = false;
+	_sockets.insert(std::pair<int, t_data>(newClient, data));
+	std::cout << "New client connected" << std::endl;
+	std::cout << "\tfd: " << newClient << std::endl;
+	return (false);
 }
 #endif

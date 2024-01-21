@@ -6,7 +6,7 @@
 /*   By: pharbst <pharbst@student.42heilbronn.de    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/30 15:05:15 by pharbst           #+#    #+#             */
-/*   Updated: 2024/01/21 16:28:42 by pharbst          ###   ########.fr       */
+/*   Updated: 2024/01/21 18:38:59 by pharbst          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -104,7 +104,7 @@ class socketManager {
 		static bool							validateCreationParams(const std::string &interfaceAddress, uint32_t port, uint32_t protocol);
 	#if defined(__SSL__)
 		static void							sslInit(const t_socket &newSocket, int fd);
-		static void							sslAccept(int newClient, int fd);
+		static bool							sslAccept(int newClient, int fd);
 	#endif
 	#if defined(__LINUX__) || defined(__linux__)
 		static void							socketEpoll(InterfaceFunction interfaceFunction);
