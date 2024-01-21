@@ -6,7 +6,7 @@
 /*   By: pharbst <pharbst@student.42heilbronn.de    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/13 12:02:48 by pharbst           #+#    #+#             */
-/*   Updated: 2024/01/20 21:08:27 by pharbst          ###   ########.fr       */
+/*   Updated: 2024/01/21 16:53:21 by pharbst          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,12 +16,7 @@ bool	Interface::readFromSocket(int sock, std::string &request) {
 	int	n = BUFFER_SIZE;
 	char buffer[BUFFER_SIZE];
 	while (n == BUFFER_SIZE) {
-		#if defined(__SSL__)
-		if ()
-		n = 
-		#else
 		n = read(sock, buffer, BUFFER_SIZE);
-		#endif
 		if (n < 0) {
 			std::cout << "recv failed" << std::endl;
 			return (true);
@@ -36,16 +31,20 @@ bool	Interface::readFromSocket(int sock, std::string &request) {
 	return (false);
 }
 
-bool	Interface::passRequest(std::string &request, std::string &response) {
+bool	Interface::passRequest(std::string &request, std::string &response, uint32_t port) {
 	if (request.empty())
 		return (true);
-	for (std::map<std::string, protocolFunction>::iterator it = _protocolMap.begin(); it != _protocolMap.end(); it++) {
-		if (request.find(it->first) != std::string::npos) {
-			std::cout << "protocol found" << std::endl;
-			response = _protocolMap[it->first](request);
-			return (false);
-		}
+	if (_protocolMap.find(port) != _protocolMap.end()) {
+		response = _protocolMap[port](request);
+		return (false);
 	}
+	// for (std::map<int, protocolFunction>::iterator it = _protocolMap.begin(); it != _protocolMap.end(); it++) {
+	// 	if () {
+	// 		std::cout << "protocol found" << std::endl;
+	// 		response = _protocolMap[it->first](request);
+	// 		return (false);
+	// 	}
+	// }
 	std::cout << "request: " << request << std::endl;
 	std::cout << "unknown protocol" << std::endl;
 	return (true);
@@ -60,6 +59,7 @@ bool	Interface::writeToSocket(int sock, std::string &response) {
 
 #if defined(__SSL__)
 bool	Interface::sslReadFromSocket(int sock, std::string &request, t_data sockData) {
+	(void)sock;
 	int	n = BUFFER_SIZE;
 	char buffer[BUFFER_SIZE];
 	while (n == BUFFER_SIZE) {
@@ -79,6 +79,7 @@ bool	Interface::sslReadFromSocket(int sock, std::string &request, t_data sockDat
 }
 
 bool	Interface::sslWriteToSocket(int sock, std::string &response, t_data sockData) {
+	(void)sock;
 	int i = SSL_write(sockData.sslSession, response.c_str(), response.length());
 	if (i < 0 || i == 0)
 		return (true);

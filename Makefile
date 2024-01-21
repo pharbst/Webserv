@@ -6,7 +6,7 @@
 #    By: pharbst <pharbst@student.42heilbronn.de    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2023/04/17 12:55:54 by pharbst           #+#    #+#              #
-#    Updated: 2024/01/20 19:24:29 by pharbst          ###   ########.fr        #
+#    Updated: 2024/01/21 16:46:51 by pharbst          ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -71,16 +71,12 @@ all:
 	@$(MAKE) -s std_all
 
 ssl:
-	$(MAKE) -s proname_header
-	$(MAKE) -s std_clean
-	$(MAKE) -s std_all SSLFLAG="-D__SSL__ -I/goinfre/$(USER)/.brew/opt/openssl@3/include" SSLLDFLAG="-L/goinfre/$(USER)/.brew/opt/openssl@3/lib -lssl -lcrypto"
+	@$(MAKE) -s proname_header
+	@$(MAKE) -s std_clean
+	@$(MAKE) -s std_all SSLFLAG="-D__SSL__ -I/goinfre/$(USER)/.brew/opt/openssl@3/include" SSLLDFLAG="-L/goinfre/$(USER)/.brew/opt/openssl@3/lib -lssl -lcrypto"
 
 
 std_all:
-	@echo $(CFLAGS)
-	@echo $(SSLFLAG)
-	@echo $(SSLLDFLAG)
-	
 	@printf "%s$(RESET)\n" "$(FPurple)Compiling $(PRONAME)"
 	@-include $(OBJS:.o=.d)
 	@$(MAKE) -s $(PRONAME)

@@ -6,7 +6,7 @@
 /*   By: pharbst <pharbst@student.42heilbronn.de    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/30 15:12:07 by pharbst           #+#    #+#             */
-/*   Updated: 2024/01/20 21:11:29 by pharbst          ###   ########.fr       */
+/*   Updated: 2024/01/21 16:47:57 by pharbst          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -214,7 +214,7 @@ void							socketManager::socketKqueue(InterfaceFunction interfaceFunction) {
 	}
 	while (true) {
 		// std::cout << "waiting for events" << std::endl;
-		printMap();
+		// printMap();
 		int numEvents = kevent(_kq, NULL, 0, _events, 2, NULL);
 		if (numEvents == -1) {
 			std::cerr << "Error in kevent" << std::endl;
@@ -235,7 +235,7 @@ void							socketManager::socketKqueue(InterfaceFunction interfaceFunction) {
 					data.read = false;
 				if (_events[i].filter == EVFILT_WRITE) {
 					data.write = true;
-					std::cout << "write event detected" << std::endl;
+					// std::cout << "write event detected" << std::endl;
 				}
 				else
 					data.write = false;
@@ -260,7 +260,9 @@ void						socketManager::kqueueAccept(int fd) {
 			continue;
 		}
 		#if defined(__SSL__)
+		std::cout << "debug: ssl = " << _sockets[fd].ssl << std::endl;
 		if (_sockets[fd].ssl) {
+			std::cout << "ssl accept called" << std::endl;
 			sslAccept(newClient, fd);
 			EV_SET(&_changes[0], newClient, EVFILT_READ, EV_ADD, 0, 0, NULL);
 			if (kevent(_kq, &_changes[0], 1, NULL, 0, NULL) == -1) {
@@ -408,8 +410,8 @@ void	socketManager::sslInit(const t_socket &newSocket, int fd) {
 		std::cout << "SSL context creation failed" << std::endl;
 		return ;
 	}
-	if (SSL_CTX_use_certificate_file(data.ctx, newSocket.certFile, SSL_FILETYPE_PEM) <= 0 ||
-		SSL_CTX_use_PrivateKey_file(data.ctx, newSocket.keyFile, SSL_FILETYPE_PEM) <= 0) {
+	if (SSL_CTX_use_certificate_file(data.ctx, newSocket.certFile.c_str(), SSL_FILETYPE_PEM) <= 0 ||
+		SSL_CTX_use_PrivateKey_file(data.ctx, newSocket.keyFile.c_str(), SSL_FILETYPE_PEM) <= 0) {
 		std::cout << "SSL context configuration failed" << std::endl;
 		return ;
 	}
