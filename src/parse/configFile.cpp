@@ -76,9 +76,7 @@ void	ConfigFile::addServerName(configServer &server, std::string token, std::ist
 void	ConfigFile::addAddress(configServer &server, std::string token, std::istringstream &find)
 {
 	std::string				tmp;
-	std::string				address;
 	std::istringstream		portStr;
-	int						port;
 
 	if (token == "listen")
 	{
@@ -89,17 +87,19 @@ void	ConfigFile::addAddress(configServer &server, std::string token, std::istrin
 		if (find >> tmp) {
 			if (tmp[0] == '[') {
 				size_t pos = tmp.find("]");
-				address = tmp.substr(1, pos - 1);
+				server._address = tmp.substr(1, pos - 1);
 				portStr.str(tmp.substr(pos + 2));
-				portStr >> port;
+				server._portStr = tmp.substr(pos + 2);
+				portStr >> server._port;
 			}
 			else {
 				size_t pos = tmp.find(":");
-				address = tmp.substr(0, pos);
+				server._address = tmp.substr(0, pos);
 				portStr.str(tmp.substr(pos + 1));
-				portStr >> port;
+				server._portStr = tmp.substr(pos + 1);
+				portStr >> server._port;
 			}
-			server._socketAddress.interfaceAddress = convertToSockAddr(address, port);
+			server._socketAddress.interfaceAddress = convertToSockAddr(server._address, server._port);
 			server._socketAddress.protocol = TCP;
 			if (find >> tmp && tmp == "ssl")
 				server._socketAddress.ssl = true;

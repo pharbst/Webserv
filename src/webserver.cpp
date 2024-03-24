@@ -17,8 +17,7 @@ void sigHandler(int signum)
 	exit(signum);
 }
 
-uint32_t	extractPort(struct sockaddr* address) 
-{
+static uint32_t	extractPort(struct sockaddr* address) {
 	if (address->sa_family == AF_INET)
 		return (ntohs(((struct sockaddr_in*)address)->sin_port));
 	else if (address->sa_family == AF_INET6)
@@ -31,9 +30,9 @@ void printConfig(std::string name, configServer server) {
 	std::cout << FPurple << "╔══════════════════════════════════════════════════════╗" << NORMAL << std::endl;
 	std::cout << FPurple << "║" << GREEN << std::setw(54) << std::left << "SERVER: " + name + " " + (server.validFormat ? "[VALID]" : "[INVALID]")  << FPurple << "║" << NORMAL << std::endl;
 	std::cout << FPurple << "╠══════════════════════════════════════════════════════╣" << NORMAL << std::endl;
-	std::cout << FPurple << "║" << FYellow << std::setw(54) << std::left << "SERVERNAME" + server._serverName << FPurple << "║" << std::endl;
+	std::cout << FPurple << "║" << FYellow << std::setw(54) << std::left << "SERVERNAME: " + server._serverName << FPurple << "║" << std::endl;
 	std::cout << FPurple << "║" << FYellow << std::setw(54) << std::left << "INCLUDE: " + server._include << FPurple << "║" << std::endl;
-	std::cout << FPurple << "║" << FYellow << std::setw(54) << std::left << "LISTEN: " + server._listen << FPurple << "║" << std::endl;
+	std::cout << FPurple << "║" << FYellow << std::setw(54) << std::left << "PORT: " + server._portStr << FPurple << "║" << std::endl;
 	std::cout << FPurple << "║" << FYellow << std::setw(54) << std::left << "ADDRESS: " + server._address << FPurple << "║" << std::endl;
 	std::cout << FPurple << "║" << FYellow << std::setw(54) << std::left << "ROOT: " + server._root << FPurple << "║" << std::endl;
 	std::cout << FPurple << "║" << FYellow << std::setw(54) << std::left << "VALIDFORMAT: " + server.validFormat << FPurple << "║" << std::endl;
