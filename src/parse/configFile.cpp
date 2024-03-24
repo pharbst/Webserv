@@ -104,9 +104,9 @@ void	ConfigFile::addAddress(configServer &server, std::string token, std::istrin
 				newSocket.interfaceAddress = convertToSockAddr(server._address, server._port);
 			}
 			catch (std::exception &e) {
-				std::cout << "Skipping this socket because of: " << std::endl;
+				std::cout << "Skipping this socket because of: ";
 				PRINT_ERROR;
-				
+				std::cout << std::endl;
 			}
 			newSocket.protocol = TCP;
 			if (find >> tmp && tmp == "ssl")
