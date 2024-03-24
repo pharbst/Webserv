@@ -6,11 +6,12 @@
 #    By: pharbst <pharbst@student.42heilbronn.de    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2023/04/17 12:55:54 by pharbst           #+#    #+#              #
-#    Updated: 2024/03/24 01:44:23 by pharbst          ###   ########.fr        #
+#    Updated: 2024/03/24 10:07:41 by pharbst          ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 # openssl req -new -newkey rsa:2048 -nodes -keyout test.key -subj "/C=DE/ST=Baden-Württemberg /L=Heilbronn /O=42/CN=42heilbronn.com" -x509 -days 365 -out test.crt && cat test.key test.crt >> test.pem
+# openssl req -new -newkey rsa:2048 -nodes -keyout test2.key -subj "/C=DE/ST=Baden-Württemberg /L=Heilbronn /O=42/CN=42heilbronn.com" -x509 -days 365 -out test2.crt && cat test2.key test2.crt >> test2.pem
 
 include color.mk
 
@@ -44,9 +45,6 @@ LDFLAGS		:= -lssl -lcrypto -L./$(SOCKETMANAGER_DIR) -lsocketManager
 endif
 
 CC		= c++
-
-# -MMD and -MP are ussed to create dependecy files
-# CFLAGS	= -Wall -Wextra -Werror -MMD -MP -g -std=c++98 -pedantic $(INC_DIR)
 
 # add source files with header with the same name
 SOURCE	=	# Config.cpp \

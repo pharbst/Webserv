@@ -25,10 +25,7 @@ void ConfigFile::readFile(std::string &fileName, std::map<std::string, configSer
 				size++;
 				if (token == "server" && size > 1)
 				{
-					// if (!checkSSLParameter(tmpServer))
-						// std::cout << "SSL parameters missing, skipping socket" << std::endl;
-					// else
-						config.insert(std::pair<std::string, configServer>(tmpServer._serverName, tmpServer));
+					config.insert(std::pair<std::string, configServer>(tmpServer._serverName, tmpServer));
 					tmpServer = initializeObj();
 					tmpServer._mimeTypes = this->_mimeTypes;
 				}
@@ -49,7 +46,6 @@ void ConfigFile::readFile(std::string &fileName, std::map<std::string, configSer
 				}
 			}
 		}
-		// checkSSLParameter(tmpServer);
 		config.insert(std::pair<std::string, configServer>(tmpServer._serverName, tmpServer));
 	}
 	else
@@ -109,7 +105,7 @@ void	ConfigFile::addAddress(configServer &server, std::string token, std::istrin
 			}
 			catch (std::exception &e) {
 				std::cout << "Skipping this socket because of: " << std::endl;
-				std::cout << "Exception: " << e.what() << std::endl;
+				PRINT_ERROR;
 				
 			}
 			newSocket.protocol = TCP;
