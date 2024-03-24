@@ -25,8 +25,9 @@ struct configServer
 {
 	std::string 							_serverName;
 	std::string 							_include;
-	// std::vector<struct socketParameter>		_socketAddress;
-	struct socketParameter					_socketAddress;
+	std::vector<struct socketParameter>		_socketAddress;
+	std::string								_certificate;
+	std::string								_key;
 	uint32_t								_port;
 	std::string								_portStr;
 	std::string 							_address;
